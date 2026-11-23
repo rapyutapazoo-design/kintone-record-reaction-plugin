@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_MAPPING } from "../src/lib/fields";
 import {
+  applyRecommendedSet,
+  carryOriginalKeys,
   buildRxLabel,
   defaultConfig,
   defaultReactions,
@@ -14,6 +16,7 @@ import {
   serializeConfig,
   validateConfig,
   type ReactionConfig,
+  type ReactionDef,
 } from "../src/lib/reactionConfig";
 import { countGraphemes } from "../src/lib/text";
 import { makeFieldsResponse } from "./helpers/records";
@@ -210,5 +213,111 @@ describe("編集補助", () => {
   it("newReactionDef は未使用の最小番号", () => {
     expect(newReactionDef([], 0).key).toBe("reaction_1");
     expect(newReactionDef(["reaction_1", "reaction_3"], 1).key).toBe("reaction_2");
+  });
+});
+
+describe("applyRecommendedSet", () => {
+  const legacy = (): ReactionDef[] => {
+    const b = { enabled: true, spaceId: "", countField: "", confetti: false };
+    return [
+      { key: "like", emoji: "👍", label: "旧いいね", color: "red", theme: "emoji", ...b },
+      { key: "favorite", emoji: "⭐", label: "お気に入り", color: "orange", theme: "emoji", ...b },
+      { key: "want_to_go", emoji: "🚶", label: "行きたい", color: "green", theme: "emoji", ...b },
+      { key: "interested", emoji: "👀", label: "気になる", color: "blue", theme: "emoji", ...b },
+    ];
+  };
+  const must = (r: ReturnType<typeof applyRecommendedSet>): ReactionDef[] => {
+    if (!r.ok) throw new Error(r.message);
+    return r.reactions;
+  };
+  const filler = (n: number): ReactionDef[] =>
+    Array.from({ length: n }, (_, i) => ({ ...defaultReactions()[0]!, key: `x${i}`, theme: "emoji" as const }));
+
+  it("旧4種から移行する", () => {
+    const out = must(applyRecommendedSet(legacy(), resp));
+    expect(out.map((r) => r.key)).toEqual(["like", "ok", "helpful", "thanks", "favorite", "want_to_go", "interested"]);
+    expect(out[0]).toMatchObject({ theme: "heart", emoji: "❤️", label: "いいね", enabled: true });
+    expect(out.slice(4).every((r) => !r.enabled)).toBe(true);
+    expect(out[4]).toMatchObject({ emoji: "⭐", label: "お気に入り", theme: "emoji" });
+  });
+  it("冪等", () => {
+    const once = must(applyRecommendedSet(legacy(), resp));
+    const twice = applyRecommendedSet(once, resp);
+    expect(twice.ok).toBe(true);
+    expect(must(twice)).toEqual(once);
+  });
+  it("既存の設定値を保持し、空白付きキーをそろえる", () => {
+    const src = legacy();
+    src[0] = { ...src[0]!, key: " like ", spaceId: "sp", countField: "cnt_like", confetti: true, color: "blue", enabled: false };
+    const out = must(applyRecommendedSet(src, resp));
+    expect(out[0]).toMatchObject({ key: "like", spaceId: "sp", countField: "cnt_like", confetti: true, color: "blue", enabled: true });
+  });
+  it("上限を超えると適用しない", () => {
+    const r = applyRecommendedSet(filler(12), resp);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.message).toContain("12件");
+    const okR = applyRecommendedSet(filler(8), resp);
+    expect(must(okR)).toHaveLength(12);
+  });
+  it("推奨キーの行が重複していると適用しない", () => {
+    const src = legacy();
+    src.push({ ...src[0]!, key: " like " });
+    const r = applyRecommendedSet(src, resp);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.message).toContain("重複");
+  });
+  it("回数欄の割り当て", () => {
+    const out = must(applyRecommendedSet(legacy(), resp));
+    expect(out.find((r) => r.key === "ok")!.countField).toBe("cnt_ok");
+    expect(out.find((r) => r.key === "helpful")!.countField).toBe("");
+    const src = legacy();
+    src[1] = { ...src[1]!, countField: "cnt_ok", enabled: false };
+    const out2 = must(applyRecommendedSet(src, resp));
+    expect(out2.find((r) => r.key === "ok")!.countField).toBe("");
+    expect(out2.find((r) => r.key === "favorite")!.countField).toBe("cnt_ok");
+    const src3 = legacy();
+    src3[0] = { ...src3[0]!, countField: "other" };
+    expect(must(applyRecommendedSet(src3, resp))[0]!.countField).toBe("other");
+  });
+  it("validateConfig を通る", () => {
+    const src = legacy();
+    src[1] = { ...src[1]!, countField: "cnt_ok" };
+    const out = must(applyRecommendedSet(src, resp));
+    const c = { ...base(), reactions: out };
+    expect(errs(c, rows(c))).toEqual([]);
+  });
+  it("入力を変更しない", () => {
+    const src = legacy();
+    const copy = structuredClone(src);
+    const r = must(applyRecommendedSet(src, resp));
+    expect(src).toEqual(copy);
+    expect(r).not.toBe(src);
+    expect(r.some((d) => src.includes(d))).toBe(false);
+  });
+});
+
+describe("carryOriginalKeys", () => {
+  it("trim したキーで originalKey を引き継ぎ、新規行は null", () => {
+    const before = [
+      { key: " like ", originalKey: "like" },
+      { key: "favorite", originalKey: "favorite" },
+      { key: "draft", originalKey: null },
+    ];
+    const b = { enabled: true, spaceId: "", countField: "", confetti: false };
+    const after: ReactionDef[] = [
+      { key: "like", emoji: "❤️", label: "いいね", color: "red", theme: "heart", ...b },
+      { key: "ok", emoji: "✅", label: "了解", color: "green", theme: "confirm", ...b },
+      { key: "favorite", emoji: "⭐", label: "お気に入り", color: "orange", theme: "emoji", ...b },
+      { key: "draft", emoji: "📝", label: "下書き", color: "blue", theme: "emoji", ...b },
+    ];
+    expect(carryOriginalKeys(before, after)).toEqual(["like", null, "favorite", null]);
+  });
+  it("前後に空白がある行（推奨キー以外）でも originalKey を引き継ぐ", () => {
+    const before = [{ key: "  memo  ", originalKey: "memo" }];
+    const b = { enabled: true, spaceId: "", countField: "", confetti: false };
+    const after: ReactionDef[] = [
+      { key: "  memo  ", emoji: "📝", label: "メモ", color: "blue", theme: "emoji", ...b },
+    ];
+    expect(carryOriginalKeys(before, after)).toEqual(["memo"]);
   });
 });

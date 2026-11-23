@@ -17,6 +17,8 @@ import {
   REACTION_THEMES,
   THEME_LABELS,
   HEADER_SPACE,
+  applyRecommendedSet,
+  carryOriginalKeys,
   moveItem,
   newReactionDef,
   type ConfigError,
@@ -60,6 +62,9 @@ const COLUMN_LABELS: Record<ColumnName, string> = {
   label: "表示ラベル列",
   at: "日時列",
 };
+
+const APPLY_RECOMMENDED_CONFIRM =
+  "推奨セット（いいね・了解・なるほど・ありがとう）を適用します。同じキーのボタンは見た目・絵文字・表示名が上書きされ、無いものは追加されます。それ以外のボタンは無効になります（削除はされず、過去の記録は残ります）。保存するまで反映されません。よろしいですか？";
 
 function option(value: string, label: string, selected: boolean): HTMLOptionElement {
   const o = document.createElement("option");
@@ -202,11 +207,26 @@ export function renderConfigForm(roots: ConfigFormRoots, ctx: ConfigFormContext)
       errorRows = new Set();
       renderReactions();
     });
-    roots.reactions.appendChild(el("p", {}, [add]));
+    const apply = el("button", { type: "button", text: "推奨セットを適用" }) as HTMLButtonElement;
+    apply.addEventListener("click", () => {
+      const result = applyRecommendedSet(rows.map((r) => r.def), ctx.fields);
+      const box = document.getElementById("plugin-config-errormsg");
+      if (!result.ok) {
+        if (box) box.textContent = result.message;
+        return;
+      }
+      if (!window.confirm(APPLY_RECOMMENDED_CONFIRM)) return;
+      const carried = carryOriginalKeys(rows.map((r) => ({ key: r.def.key, originalKey: r.originalKey })), result.reactions);
+      rows = result.reactions.map((def, i) => ({ def: { ...def }, originalKey: carried[i] ?? null }));
+      errorRows = new Set();
+      if (box) box.textContent = "";
+      renderReactions();
+    });
+    roots.reactions.appendChild(el("p", {}, [add, " ", apply]));
     roots.reactions.appendChild(
       el("p", {
         className: "krx-config-hint",
-        text: `最大${MAX_REACTIONS}件。保存済みのキーは変更できません。削除・停止しても過去の記録はレコードに残ります。色は見た目が「絵文字」のときだけ反映されます。絵文字は記録の表示ラベル（例: ❤️ いいね）にも使います。`,
+        text: `最大${MAX_REACTIONS}件。保存済みのキーは変更できません。削除・停止しても過去の記録はレコードに残ります。色は見た目が「絵文字」のときだけ反映されます。絵文字は記録の表示ラベル（例: ❤️ いいね）にも使います。「推奨セットを適用」を押すと、いいね・了解・なるほど・ありがとうの4種に切り替え、それ以外は無効にします（保存するまで反映されません）。`,
       })
     );
   }
