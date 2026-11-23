@@ -83,6 +83,64 @@ export function presetCountFields(defs: ReactionDef[], resp: FormFieldsResponse)
   });
 }
 
+export type ApplyRecommendedResult =
+  | { ok: true; reactions: ReactionDef[] }
+  | { ok: false; message: string };
+
+// 推奨セット（like / ok / helpful / thanks）を現在の設定へ適用した新しい配列を返す純粋関数。
+export function applyRecommendedSet(reactions: ReactionDef[], resp: FormFieldsResponse): ApplyRecommendedResult {
+  const recs = defaultReactions();
+  const recKeys = new Set(recs.map((r) => r.key));
+  if (recs.some((rec) => reactions.filter((r) => r.key.trim() === rec.key).length > 1)) {
+    return {
+      ok: false,
+      message: "キーが重複している行があるため適用できません。重複を解消してから、もう一度お試しください。",
+    };
+  }
+  const current = new Set(reactions.map((r) => r.key.trim()));
+  const missing = recs.filter((r) => !current.has(r.key)).length;
+  if (reactions.length + missing > MAX_REACTIONS) {
+    return {
+      ok: false,
+      message: `リアクションが${MAX_REACTIONS}件を超えるため適用できません。不要な行を削除してから、もう一度お試しください。（現在${reactions.length}件、追加が必要なのは${missing}件）`,
+    };
+  }
+  const head: ReactionDef[] = recs.map((rec) => {
+    const row = reactions.find((r) => r.key.trim() === rec.key);
+    return row
+      ? { ...row, key: rec.key, theme: rec.theme, emoji: rec.emoji, label: rec.label, enabled: true }
+      : { ...rec };
+  });
+  const tail: ReactionDef[] = reactions.filter((r) => !recKeys.has(r.key.trim())).map((r) => ({ ...r, enabled: false }));
+  // 回数欄: 全行（無効行を含む）で使用済みのものは割り当てない。
+  const used = new Set<string>();
+  for (const d of [...head, ...tail]) if (d.countField !== "") used.add(d.countField);
+  const numbers = new Set(listNumberFields(resp).map((f) => f.code));
+  for (const d of head) {
+    if (d.countField !== "") continue;
+    const code = `cnt_${d.key}`;
+    if (numbers.has(code) && !used.has(code)) {
+      d.countField = code;
+      used.add(code);
+    }
+  }
+  return { ok: true, reactions: [...head, ...tail] };
+}
+
+// 適用前の行（key と originalKey）から、適用後の各 def に引き継ぐ originalKey を返す。
+// キーは trim して照合し、同じキーが複数あれば最初の行を優先する。新規行は null。
+export function carryOriginalKeys(
+  before: { key: string; originalKey: string | null }[],
+  after: ReactionDef[]
+): (string | null)[] {
+  const originals = new Map<string, string | null>();
+  for (const r of before) {
+    const k = r.key.trim();
+    if (!originals.has(k)) originals.set(k, r.originalKey);
+  }
+  return after.map((d) => originals.get(d.key.trim()) ?? null);
+}
+
 export function defaultDisplay(): DisplayOptions {
   return { showCount: true, listMode: "chips", maxListUsers: 20 };
 }
