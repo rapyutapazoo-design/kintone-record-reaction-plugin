@@ -28,6 +28,12 @@ npm run verify   # test → typecheck → build → check:plugin → package:plu
 ```
 `dist/plugin.zip` が生成されます。秘密鍵は初回に `keys/private.ppk` へ自動生成されます。**必ずバックアップしてください**（紛失するとプラグイン ID が変わります）。`keys/` と `dist/` は Git 管理外です。
 
+アイコンは `assets/plugin-icon.svg`（`plugin/` の外）から 112×112 の透過 PNG に書き出して `plugin/image/icon.png` に置きます。正は `assets/plugin-icon.svg` で、`mockups/plugin-icon-designs.html` は検討用です。次のコマンドは macOS 用で、リポジトリのルートで実行してください。
+```
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --hide-scrollbars --default-background-color=00000000 --window-size=112,112 --screenshot="$PWD/plugin/image/icon.png" "file://$PWD/assets/plugin-icon.svg"
+```
+書き出し後は `file plugin/image/icon.png` で `112 x 112` の RGBA になっていることを確認します。
+
 ## 導入
 フォームの作り方・アクセス権・API トークンは [docs/app-setup.md](docs/app-setup.md) を参照してください。セキュリティ上の注意は [docs/security.md](docs/security.md)、実機確認項目は [docs/manual-test.md](docs/manual-test.md) です。
 
