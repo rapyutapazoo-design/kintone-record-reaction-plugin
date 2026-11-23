@@ -1,4 +1,4 @@
-import { activeReactions, resolveDefSpace, type ReactionColor, type ReactionConfig } from "./reactionConfig";
+import { activeReactions, resolveDefSpace, type ReactionColor, type ReactionConfig, type ReactionTheme } from "./reactionConfig";
 import { countByKey, isReacted, readEntries, usersForKey, type ReactionEntry } from "./reactions";
 import { hasField, type KintoneRecord } from "./record";
 
@@ -7,6 +7,7 @@ export interface ChipView {
   emoji: string;
   label: string;
   color: ReactionColor;
+  theme: ReactionTheme;
   reacted: boolean;
   count: number | null;
   users: { names: string[]; more: number } | null;
@@ -55,6 +56,7 @@ export function buildBars(input: {
       emoji: def.emoji,
       label: def.label,
       color: def.color,
+      theme: def.theme,
       reacted: source ? isReacted(source, userCode, def.key) : false,
       count,
       users,
@@ -98,8 +100,13 @@ export function formatCount(n: number | null): string {
   return n >= 1000 ? "999+" : String(n);
 }
 
+// 読み上げ・ツールチップ用の名前。emoji テーマだけ絵文字を前に付ける（他は SVG が絵文字の代わり）。
+export function chipName(chip: ChipView): string {
+  return chip.theme === "emoji" ? `${chip.emoji} ${chip.label}` : chip.label;
+}
+
 export function chipAriaLabel(chip: ChipView): string {
-  const parts = [`${chip.emoji} ${chip.label}`];
+  const parts = [chipName(chip)];
   if (chip.count !== null) parts.push(`${formatCount(chip.count)}件`);
   parts.push(chip.reacted ? "付けています" : "付けていません");
   return parts.join("、");

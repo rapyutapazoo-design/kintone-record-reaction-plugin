@@ -14,6 +14,8 @@ import {
   MAX_LIST_USERS_LIMIT,
   MAX_REACTIONS,
   REACTION_COLORS,
+  REACTION_THEMES,
+  THEME_LABELS,
   HEADER_SPACE,
   moveItem,
   newReactionDef,
@@ -23,6 +25,7 @@ import {
   type ReactionColor,
   type ReactionConfig,
   type ReactionDef,
+  type ReactionTheme,
 } from "../lib/reactionConfig";
 import { resolveSpaceOptions } from "../lib/settings";
 import { el } from "./dom";
@@ -140,7 +143,7 @@ export function renderConfigForm(roots: ConfigFormRoots, ctx: ConfigFormContext)
   function renderReactions(): void {
     roots.reactions.textContent = "";
     roots.reactions.appendChild(el("h2", { text: "リアクション" }));
-    const head = el("tr", {}, ["有効", "キー", "絵文字", "表示名", "色", "配置先", "回数欄", "紙吹雪", "操作"].map((t) => el("th", { text: t })));
+    const head = el("tr", {}, ["有効", "キー", "見た目", "絵文字", "表示名", "色", "配置先", "回数欄", "紙吹雪", "操作"].map((t) => el("th", { text: t })));
     const tbody = el("tbody");
     rows.forEach((row, i) => {
       const d = row.def;
@@ -150,9 +153,19 @@ export function renderConfigForm(roots: ConfigFormRoots, ctx: ConfigFormContext)
       };
       cell(checkbox(d.enabled, "有効", (v) => (d.enabled = v)));
       cell(textInput(d.key, "krx-in-key", (v) => (d.key = v), row.originalKey !== null));
+      // 色の選択は見た目が「絵文字」のときだけ使う（値は保持する）。
+      const colorSel = select(REACTION_COLORS.map((c) => ({ value: c, label: COLOR_LABELS[c] })), d.color, (v) => (d.color = v as ReactionColor));
+      colorSel.disabled = d.theme !== "emoji";
+      colorSel.title = "色は見た目が「絵文字」のときだけ使います";
+      cell(
+        select(REACTION_THEMES.map((t) => ({ value: t, label: THEME_LABELS[t] })), d.theme, (v) => {
+          d.theme = v as ReactionTheme;
+          colorSel.disabled = d.theme !== "emoji";
+        })
+      );
       cell(textInput(d.emoji, "krx-in-emoji", (v) => (d.emoji = v)));
       cell(textInput(d.label, "krx-in-label", (v) => (d.label = v)));
-      cell(select(REACTION_COLORS.map((c) => ({ value: c, label: COLOR_LABELS[c] })), d.color, (v) => (d.color = v as ReactionColor)));
+      cell(colorSel);
       cell(select(spaceOptions(d.spaceId), d.spaceId, (v) => (d.spaceId = v)));
       cell(select(numberOptions.some((o) => o.value === d.countField) ? numberOptions : [...numberOptions, { value: d.countField, label: `（見つかりません: ${d.countField}）` }], d.countField, (v) => (d.countField = v)));
       cell(checkbox(d.confetti, "紙吹雪", (v) => (d.confetti = v)));
@@ -193,7 +206,7 @@ export function renderConfigForm(roots: ConfigFormRoots, ctx: ConfigFormContext)
     roots.reactions.appendChild(
       el("p", {
         className: "krx-config-hint",
-        text: `最大${MAX_REACTIONS}件。保存済みのキーは変更できません。削除・停止しても過去の記録はレコードに残ります。`,
+        text: `最大${MAX_REACTIONS}件。保存済みのキーは変更できません。削除・停止しても過去の記録はレコードに残ります。色は見た目が「絵文字」のときだけ反映されます。絵文字は記録の表示ラベル（例: ❤️ いいね）にも使います。`,
       })
     );
   }

@@ -37,22 +37,22 @@
       "label": "いいね数",
       "defaultValue": "0"
     },
-    "cnt_favorite": {
+    "cnt_ok": {
       "type": "NUMBER",
-      "code": "cnt_favorite",
-      "label": "お気に入り数",
+      "code": "cnt_ok",
+      "label": "了解数",
       "defaultValue": "0"
     },
-    "cnt_want_to_go": {
+    "cnt_helpful": {
       "type": "NUMBER",
-      "code": "cnt_want_to_go",
-      "label": "行きたい数",
+      "code": "cnt_helpful",
+      "label": "なるほど数",
       "defaultValue": "0"
     },
-    "cnt_interested": {
+    "cnt_thanks": {
       "type": "NUMBER",
-      "code": "cnt_interested",
-      "label": "気になる数",
+      "code": "cnt_thanks",
+      "label": "ありがとう数",
       "defaultValue": "0"
     }
   }

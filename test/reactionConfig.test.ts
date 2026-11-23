@@ -7,6 +7,7 @@ import {
   HEADER_SPACE,
   moveItem,
   newReactionDef,
+  normalizeFormInput,
   parseConfig,
   presetCountFields,
   resolveRuntimeConfig,
@@ -14,9 +15,10 @@ import {
   validateConfig,
   type ReactionConfig,
 } from "../src/lib/reactionConfig";
+import { countGraphemes } from "../src/lib/text";
 import { makeFieldsResponse } from "./helpers/records";
 
-const resp = makeFieldsResponse({ numberFields: ["cnt_like", "cnt_favorite", "other"] });
+const resp = makeFieldsResponse({ numberFields: ["cnt_like", "cnt_ok", "other"] });
 const base = (): ReactionConfig => defaultConfig(DEFAULT_MAPPING);
 const rows = (c: ReactionConfig) => c.reactions.map((): { originalKey: string | null } => ({ originalKey: null }));
 const errs = (c: ReactionConfig, r = rows(c)) => validateConfig(c, resp, r);
@@ -24,12 +26,13 @@ const errs = (c: ReactionConfig, r = rows(c)) => validateConfig(c, resp, r);
 describe("defaults", () => {
   it("defaultReactions", () => {
     const a = defaultReactions();
-    expect(a.map((r) => r.key)).toEqual(["like", "favorite", "want_to_go", "interested"]);
+    expect(a.map((r) => r.key)).toEqual(["like", "ok", "helpful", "thanks"]);
+    expect(a.map((r) => r.theme)).toEqual(["heart", "confirm", "helpful", "thanks"]);
     expect(defaultReactions()[0]).not.toBe(a[0]);
   });
   it("presetCountFields は cnt_<key> が NUMBER で存在するときだけ割り当てる", () => {
     const out = presetCountFields(defaultReactions(), resp);
-    expect(out.map((r) => r.countField)).toEqual(["cnt_like", "cnt_favorite", "", ""]);
+    expect(out.map((r) => r.countField)).toEqual(["cnt_like", "cnt_ok", "", ""]);
   });
 });
 
@@ -98,11 +101,35 @@ describe("HEADER_SPACE", () => {
   });
 });
 
+describe("theme（見た目）", () => {
+  it("theme が無い・不正な保存済み設定は emoji、正しい値は保持される", () => {
+    const c = JSON.parse(JSON.stringify(base()));
+    delete c.reactions[0].theme;
+    c.reactions[1].theme = "rainbow";
+    c.reactions[2].theme = "thanks";
+    const r = parseConfig(JSON.stringify(c));
+    expect(r.ok && r.config.reactions.map((d) => d.theme)).toEqual(["emoji", "emoji", "thanks", "thanks"]);
+  });
+  it("validate は不正な theme を1件検出する", () => {
+    const c = base();
+    c.reactions[0]!.theme = "rainbow" as never;
+    expect(errs(c).length).toBe(1);
+  });
+  it("newReactionDef は emoji、normalizeFormInput は theme をそのまま通す", () => {
+    expect(newReactionDef([], 0).theme).toBe("emoji");
+    const c = base();
+    c.reactions[0]!.theme = "rainbow" as never;
+    expect(normalizeFormInput(c).reactions[0]!.theme).toBe("rainbow");
+    c.reactions[0]!.theme = "confirm";
+    expect(normalizeFormInput(c).reactions[0]!.theme).toBe("confirm");
+  });
+});
+
 describe("buildRxLabel", () => {
   it("60書記素に切り詰める", () => {
     const d = { ...defaultReactions()[0]!, label: "あ".repeat(100) };
-    expect(Array.from(buildRxLabel(d)).length).toBe(60);
-    expect(buildRxLabel(defaultReactions()[0]!)).toBe("👍 いいね");
+    expect(countGraphemes(buildRxLabel(d))).toBe(60);
+    expect(buildRxLabel(defaultReactions()[0]!)).toBe("❤️ いいね");
   });
 });
 

@@ -13,7 +13,7 @@ const me = { code: "me", name: "私" };
 function config(): ReactionConfig {
   const c = defaultConfig(M);
   c.reactions[0]!.countField = "cnt_like";
-  c.reactions[1]!.countField = "cnt_favorite";
+  c.reactions[1]!.countField = "cnt_ok";
   return c;
 }
 const like = (c: ReactionConfig) => c.reactions[0]!;
@@ -65,7 +65,7 @@ describe("buildToggleUpdate", () => {
     expect(rows).toHaveLength(2);
     expect(rows[0]!.id).toBe("10");
     expect(rows[1]!.id).toBeUndefined();
-    expect(rows[1]!.value[M.label]!.value).toBe("👍 いいね");
+    expect(rows[1]!.value[M.label]!.value).toBe("❤️ いいね");
     expect(rows[1]!.value[M.at]!.value).toBe("2026-05-06T07:08:09Z");
     expect(rows[1]!.value[M.userCode]!.value).toBe("me");
     expect(rows[1]!.value[M.key]!.value).toBe("like");
@@ -79,9 +79,9 @@ describe("buildToggleUpdate", () => {
         makeRow("1", { userCode: "me", key: "like" }),
         makeRow("2", { userCode: "other", key: "like" }),
         makeRow("3", { userCode: "me", key: "like" }),
-        makeRow("4", { userCode: "me", key: "interested" }),
+        makeRow("4", { userCode: "me", key: "thanks" }),
         makeRow("5", { userCode: "me", key: "BAD" }),
-        makeRow("6", { userCode: "me", key: "favorite" }),
+        makeRow("6", { userCode: "me", key: "ok" }),
       ],
     });
     const u = buildToggleUpdate({ record: rec, config: c, user: me, def: like(c), now: NOW });
@@ -98,13 +98,13 @@ describe("buildToggleUpdate", () => {
     c.reactions[2]!.countField = "cnt_want";
     c.reactions[2]!.enabled = false;
     const rec = makeRecord({
-      rows: [makeRow("1", { userCode: "o", key: "favorite" }), makeRow("2", { userCode: "p", key: "favorite" })],
+      rows: [makeRow("1", { userCode: "o", key: "ok" }), makeRow("2", { userCode: "p", key: "ok" })],
     });
     const u = buildToggleUpdate({ record: rec, config: c, user: me, def: like(c), now: NOW });
     expect(u.record.cnt_like).toEqual({ value: "1" });
-    expect(u.record.cnt_favorite).toEqual({ value: "2" });
+    expect(u.record.cnt_ok).toEqual({ value: "2" });
     expect(u.record.cnt_want).toBeUndefined();
-    expect(Object.keys(u.record).sort()).toEqual(["cnt_favorite", "cnt_like", "reactions"]);
+    expect(Object.keys(u.record).sort()).toEqual(["cnt_like", "cnt_ok", "reactions"]);
   });
   it("行数上限を超えると ROW_LIMIT", () => {
     const c = config();
@@ -122,7 +122,7 @@ describe("buildToggleUpdate", () => {
     const u = buildToggleUpdate({ record: rec, config: c, user: me, def: like(c), now: NOW, maxRows: 1 });
     expect(u.reacted).toBe(false);
     expect(u.rowsAfter).toHaveLength(2);
-    const fav = c.reactions.find((r) => r.key === "favorite")!;
+    const fav = c.reactions.find((r) => r.key === "ok")!;
     expect(() => buildToggleUpdate({ record: rec, config: c, user: me, def: fav, now: NOW, maxRows: 3 })).toThrow(
       expect.objectContaining({ code: "ROW_LIMIT" })
     );

@@ -1,6 +1,6 @@
-import { chipAriaLabel, chipTitle, formatCount, type BarView, type ChipView } from "../lib/view";
+import { chipAriaLabel, chipName, chipTitle, formatCount, type BarView, type ChipView } from "../lib/view";
 import { el } from "./dom";
-import { setIcon, type Motion } from "./motion";
+import { createBurstLayer, createThemeIcon, rollCount, type Motion } from "./motion";
 
 export interface BarHandle {
   root: HTMLElement;
@@ -22,10 +22,14 @@ function applyChip(btn: HTMLButtonElement, chip: ChipView): void {
   btn.setAttribute("aria-pressed", chip.reacted ? "true" : "false");
   btn.setAttribute("aria-label", chipAriaLabel(chip));
   btn.title = chipTitle(chip);
-  btn.classList.toggle("krx-chip-active", chip.reacted);
-  const count = btn.querySelector(".krx-count");
-  if (count) count.textContent = formatCount(chip.count);
-  setIcon(btn, chip.reacted ? "check" : null);
+  btn.classList.toggle("krx-is-active", chip.reacted);
+  const count = btn.querySelector<HTMLElement>(".krx-count");
+  if (count) {
+    const text = formatCount(chip.count);
+    rollCount(count, text);
+    const slot = count.parentElement;
+    if (slot) slot.hidden = text === "";
+  }
 }
 
 export function renderBar(container: HTMLElement, view: BarView, opts: RenderBarOptions): BarHandle {
@@ -44,15 +48,21 @@ export function renderBar(container: HTMLElement, view: BarView, opts: RenderBar
     [msg, chipsEl, whoBtn, panel]
   );
 
+  const doc = container.ownerDocument;
   const buttons = new Map<string, HTMLButtonElement>();
   for (const chip of view.chips) {
     const btn = el(
       "button",
-      { type: "button", className: `krx-chip krx-color-${chip.color}`, "data-krx-key": chip.key },
+      {
+        type: "button",
+        className: `krx-btn krx-theme-${chip.theme}${chip.theme === "emoji" ? ` krx-color-${chip.color}` : ""}`,
+        "data-krx-key": chip.key,
+      },
       [
-        el("span", { className: "krx-ic", "aria-hidden": "true" }),
-        el("span", { className: "krx-emoji", "aria-hidden": "true", text: chip.emoji }),
-        el("span", { className: "krx-count", "aria-hidden": "true" }),
+        ...createBurstLayer(doc, chip.theme),
+        createThemeIcon(doc, chip.theme, chip.emoji),
+        el("span", { className: "krx-lbl", "aria-hidden": "true", text: chip.label }),
+        el("span", { className: "krx-count-slot", "aria-hidden": "true" }, [el("span", { className: "krx-count" })]),
       ]
     ) as HTMLButtonElement;
     btn.addEventListener("click", () => {
@@ -74,7 +84,7 @@ export function renderBar(container: HTMLElement, view: BarView, opts: RenderBar
       any = true;
       const names = chip.users.names.length > 0 ? chip.users.names.join(", ") : "（まだいません）";
       const more = chip.users.more > 0 ? ` ほか${chip.users.more}人` : "";
-      panel.appendChild(el("p", { text: `${chip.emoji} ${chip.label}: ${names}${more}` }));
+      panel.appendChild(el("p", { text: `${chipName(chip)}: ${names}${more}` }));
     }
     whoBtn.hidden = !any;
     if (!any) {

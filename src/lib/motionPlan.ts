@@ -42,72 +42,55 @@ export function finishTimeoutMs(endTime: unknown, fallback = 1000, margin = 80):
 }
 
 // ---- 押し込み（P2） ----
+// mockup の :active scale(.93) と transform .12s に合わせる。
 
 export const PRESS_P2 = {
-  scale: 0.955,
-  y: 1,
+  scale: 0.93,
   down: 70,
-  over: 1.03,
-  up: 240,
-  shade: 0.8,
-  shadeDown: 40,
-  shadeUp: 140,
+  up: 120,
   cancel: 160,
-  easing: "cubic-bezier(.2,.8,.3,1)",
+  easing: "cubic-bezier(.2,0,0,1)",
 } as const;
 
 export function pressDownFrames(): Frame[] {
-  return [{ transform: "none" }, { transform: `translateY(${PRESS_P2.y}px) scale(${PRESS_P2.scale})` }];
+  return [{ transform: "none" }, { transform: `scale(${PRESS_P2.scale})` }];
 }
 
 export function pressDownTiming(): Timing {
   return { duration: PRESS_P2.down, easing: PRESS_P2.easing, fill: "forwards" };
 }
 
-export function pressUpFrames(from: string, cancelled: boolean): Frame[] {
-  if (cancelled) return [{ transform: from }, { transform: "none" }];
-  return [
-    { transform: from, easing: PRESS_P2.easing },
-    { transform: `scale(${PRESS_P2.over})`, offset: 0.4, easing: "cubic-bezier(.45,0,.4,1)" },
-    { transform: "none" },
-  ];
+export function pressUpFrames(from: string, _cancelled: boolean): Frame[] {
+  return [{ transform: from }, { transform: "none" }];
 }
 
 export function pressUpTiming(cancelled: boolean): Timing {
-  return cancelled
-    ? { duration: PRESS_P2.cancel, easing: "ease-out" }
-    : { duration: PRESS_P2.up, easing: "linear" };
+  return cancelled ? { duration: PRESS_P2.cancel, easing: "ease-out" } : { duration: PRESS_P2.up, easing: PRESS_P2.easing };
 }
 
-// ---- 波紋・拡散 ----
+// ---- 選択演出（keyframes は desktop.css） ----
 
-export interface RectLike {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
+// krx-is-bursting を外すまでの時間。floatUp(.75s) より長くする。
+export const BURST_MS = 760;
+
+// 付けたとき（取り消しではないとき）だけ、かつ動きを減らす設定でないときに選択演出を出す。
+export function shouldBurst(reacted: boolean, reduced: boolean): boolean {
+  return reacted && !reduced;
 }
 
-// 押した位置（ボタン内座標ではなく画面座標）から最も遠い角まで届く円の直径と、円の左上（ボタン内座標）。
-// point が null（キーボード操作）のときは中心を使う。
-export function rippleGeometry(
-  rect: RectLike,
-  point: { x: number; y: number } | null
-): { size: number; left: number; top: number } {
-  const x = point ? point.x - rect.left : rect.width / 2;
-  const y = point ? point.y - rect.top : rect.height / 2;
-  const size = Math.hypot(Math.max(x, rect.width - x), Math.max(y, rect.height - y)) * 2;
-  return { size, left: x - size / 2, top: y - size / 2 };
+function countValue(s: string): number | null {
+  if (s === "") return null;
+  if (s === "999+") return 1000;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
 }
 
-export function burstScale(w: number, h: number, spread = 20): { sx: number; sy: number } {
-  const sx = Number.isFinite(w) && w > 0 ? 1 + spread / w : 1;
-  const sy = Number.isFinite(h) && h > 0 ? 1 + spread / h : 1;
-  return { sx, sy };
-}
-
-export function staggerDelay(i: number, step = 40): number {
-  return i * step;
+// カウンターのスロット演出の向き。増えたら up、減ったら down。比較できないときは null。
+export function slotDirection(prev: string, next: string): "up" | "down" | null {
+  const a = countValue(prev);
+  const b = countValue(next);
+  if (a === null || b === null || a === b) return null;
+  return b > a ? "up" : "down";
 }
 
 // ---- 紙吹雪 ----
