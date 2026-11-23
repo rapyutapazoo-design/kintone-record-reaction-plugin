@@ -18,7 +18,7 @@ export interface RenderBarOptions {
   motion: Motion;
 }
 
-function applyChip(btn: HTMLButtonElement, chip: ChipView): void {
+function applyChip(btn: HTMLButtonElement, chip: ChipView, reduced: boolean): void {
   btn.setAttribute("aria-pressed", chip.reacted ? "true" : "false");
   btn.setAttribute("aria-label", chipAriaLabel(chip));
   btn.title = chipTitle(chip);
@@ -26,7 +26,7 @@ function applyChip(btn: HTMLButtonElement, chip: ChipView): void {
   const count = btn.querySelector<HTMLElement>(".krx-count");
   if (count) {
     const text = formatCount(chip.count);
-    rollCount(count, text);
+    rollCount(count, text, reduced);
     const slot = count.parentElement;
     if (slot) slot.hidden = text === "";
   }
@@ -72,7 +72,7 @@ export function renderBar(container: HTMLElement, view: BarView, opts: RenderBar
     opts.motion.attachPress(btn);
     buttons.set(chip.key, btn);
     chipsEl.appendChild(btn);
-    applyChip(btn, chip);
+    applyChip(btn, chip, opts.motion.isReduced());
   }
 
   let panelOpen = false;
@@ -116,7 +116,7 @@ export function renderBar(container: HTMLElement, view: BarView, opts: RenderBar
     update(v: BarView): void {
       for (const chip of v.chips) {
         const btn = buttons.get(chip.key);
-        if (btn) applyChip(btn, chip);
+        if (btn) applyChip(btn, chip, opts.motion.isReduced());
       }
       renderPanel(v);
     },

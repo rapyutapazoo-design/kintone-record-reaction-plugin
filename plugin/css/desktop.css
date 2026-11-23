@@ -91,7 +91,9 @@
   cursor: progress;
 }
 
-/* 選択済み（テーマごと） */
+/* 選択済み（テーマごと）
+   注意: 選択時の文字色は AA(4.5:1) 未満（heart 3.91 / confirm 3.32 / thanks 3.91）。モックアップどおりの値。
+   濃くする場合の候補: heart #be123c / confirm #047857 / thanks #be185d */
 .krx-btn.krx-theme-heart[aria-pressed="true"] {
   background: var(--krx-heart-bg);
   border-color: var(--krx-heart-border);
@@ -171,6 +173,7 @@
 }
 
 /* 選択演出（保存成功後に krx-is-bursting が付いている間だけ） */
+/* 注意: 親要素が overflow:hidden だとパーティクルが切れる可能性あり。kintone のスペース/ヘッダーで切れないか実機確認が必要 */
 .krx-particles {
   position: absolute;
   left: 22px;

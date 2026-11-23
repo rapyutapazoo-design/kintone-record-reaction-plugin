@@ -103,3 +103,55 @@ describe("slotDirection", () => {
     expect(slotDirection("a", "1")).toBeNull();
   });
 });
+
+describe("confettiParticles", () => {
+  it("rand を固定すると決まった値になり、数・範囲・色の巡回が正しい", () => {
+    const ps = confettiParticles(8, () => 0.5, CONFETTI_PALETTE);
+    expect(ps).toHaveLength(8);
+    for (const p of ps) {
+      expect(p.w).toBeCloseTo(7);
+      expect(p.h).toBeCloseTo(7 * 1.6);
+      expect(p.dx).toBeCloseTo(0);
+      expect(p.dy).toBeCloseTo(-130);
+      expect(p.rot).toBeCloseTo(0);
+      expect(p.duration).toBeCloseTo(1200);
+    }
+    expect(ps.map((p) => p.color)).toEqual([...CONFETTI_PALETTE, CONFETTI_PALETTE[0], CONFETTI_PALETTE[1]]);
+  });
+  it("rand の両端でも範囲内", () => {
+    for (const r of [0, 0.999999]) {
+      const [p] = confettiParticles(1, () => r, CONFETTI_PALETTE);
+      expect(p!.w).toBeGreaterThanOrEqual(5);
+      expect(p!.w).toBeLessThanOrEqual(9);
+      expect(p!.duration).toBeGreaterThanOrEqual(1000);
+      expect(p!.duration).toBeLessThanOrEqual(1400);
+      expect(p!.dy).toBeLessThan(-70 + 1e-9);
+    }
+  });
+  it("count=0 は空", () => {
+    expect(confettiParticles(0, Math.random, CONFETTI_PALETTE)).toEqual([]);
+  });
+});
+
+describe("shouldConfetti", () => {
+  it("付けたときだけ、動きを減らす設定でなければ true", () => {
+    expect(shouldConfetti(true, true, false)).toBe(true);
+    expect(shouldConfetti(true, false, false)).toBe(false);
+    expect(shouldConfetti(true, true, true)).toBe(false);
+    expect(shouldConfetti(false, true, false)).toBe(false);
+  });
+});
+
+describe("keyPressPhase", () => {
+  it("Space は hold、Enter は tap", () => {
+    expect(keyPressPhase(" ", false)).toBe("hold");
+    expect(keyPressPhase("Enter", false)).toBe("tap");
+    expect(ENTER_RELEASE_MS).toBe(90);
+  });
+  it("repeat とそれ以外のキーは null", () => {
+    expect(keyPressPhase(" ", true)).toBeNull();
+    expect(keyPressPhase("Enter", true)).toBeNull();
+    expect(keyPressPhase("a", false)).toBeNull();
+    expect(keyPressPhase("Tab", false)).toBeNull();
+  });
+});

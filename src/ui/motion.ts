@@ -149,11 +149,12 @@ export function createBurstLayer(doc: Document, theme: ReactionTheme): Node[] {
 }
 
 // 件数を差し替え、増減に応じてスロット式に転がす。
-export function rollCount(countEl: HTMLElement, next: string): void {
+// reduced は呼び出し元（Motion.isReduced）の判定を受け取り、createMotion の設定と食い違わないようにする。
+export function rollCount(countEl: HTMLElement, next: string, reduced: boolean): void {
   const prev = countEl.textContent ?? "";
   if (prev === next) return;
   countEl.textContent = next;
-  if (prefersReducedMotion()) return;
+  if (reduced) return;
   const dir = slotDirection(prev, next);
   countEl.classList.remove("krx-slide-up", "krx-slide-down");
   if (dir === null) return;
@@ -166,6 +167,7 @@ export interface Motion {
   success(btn: HTMLElement, row: HTMLElement): Promise<void>;
   error(btn: HTMLElement): Promise<void>;
   confetti(btn: HTMLElement): Promise<void>;
+  isReduced(): boolean;
 }
 
 export interface MotionOptions {
@@ -280,24 +282,26 @@ export function createMotion(options: MotionOptions): Motion {
     };
   }
 
-  const burstTimers = new WeakMap<Element, ReturnType<typeof setTimeout>>();
+  // 連続呼び出しで前の Promise が残らないよう、タイマーと resolve を組で保持する。
+  const burstTimers = new WeakMap<Element, { timer: ReturnType<typeof setTimeout>; resolve: () => void }>();
 
   // 付けた状態のとき、保存成功後に krx-is-bursting を付けて CSS の演出を始める（外すのは BURST_MS 後）。
   async function success(btn: HTMLElement, _row: HTMLElement): Promise<void> {
     if (!shouldBurst(btn.getAttribute("aria-pressed") === "true", isReduced())) return;
     const prev = burstTimers.get(btn);
-    if (prev !== undefined) clearTimeout(prev);
+    if (prev !== undefined) {
+      clearTimeout(prev.timer);
+      prev.resolve();
+    }
     btn.classList.remove("krx-is-bursting");
     void btn.offsetWidth; // reflow して animation を再始動する
     btn.classList.add("krx-is-bursting");
     await new Promise<void>((resolve) => {
-      burstTimers.set(
-        btn,
-        setTimeout(() => {
-          btn.classList.remove("krx-is-bursting");
-          resolve();
-        }, BURST_MS)
-      );
+      const timer = setTimeout(() => {
+        btn.classList.remove("krx-is-bursting");
+        resolve();
+      }, BURST_MS);
+      burstTimers.set(btn, { timer, resolve });
     });
   }
 
@@ -360,5 +364,5 @@ export function createMotion(options: MotionOptions): Motion {
     }
   }
 
-  return { attachPress, success, error, confetti };
+  return { attachPress, success, error, confetti, isReduced };
 }
