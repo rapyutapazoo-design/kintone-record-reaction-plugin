@@ -11,6 +11,19 @@
   --krx-purple-light: #7b1fa2;
   --krx-gray: #546e7a;
   --krx-gray-light: #5c7581;
+  --krx-heart: #e11d48;
+  --krx-heart-bg: #ffe4e6;
+  --krx-heart-border: #fda4af;
+  --krx-confirm: #059669;
+  --krx-confirm-bg: #d1fae5;
+  --krx-confirm-border: #6ee7b7;
+  --krx-helpful: #0969da;
+  --krx-helpful-bg: #ddf4ff;
+  --krx-helpful-border: #54aeff;
+  --krx-thanks: #db2777;
+  --krx-thanks-border: #f9a8d4;
+  --krx-border: #d0d7de;
+  --krx-muted: #656d76;
 }
 
 .krx-bar {
@@ -29,34 +42,266 @@
   gap: 6px;
 }
 
-.krx-chip {
+/* ボタン本体（mockups PATTERN 01）。overflow は付けない（パーティクルがはみ出せるように）。 */
+.krx-btn {
   position: relative;
-  overflow: hidden;
   isolation: isolate;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: 32px;
-  padding: 4px 14px;
-  border: 1.5px solid var(--krx-c);
+  gap: 7px;
+  min-height: 38px;
+  padding: 5px 13px;
   border-radius: 999px;
+  border: 1px solid var(--krx-border);
   background: #fff;
-  color: var(--krx-c);
+  color: var(--krx-muted);
   font: inherit;
-  font-weight: bold;
-  font-size: 14px;
+  font-size: 12.5px;
+  font-weight: 600;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
-  box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent;
-  transition:
-    translate 150ms ease,
-    filter 150ms ease,
-    opacity 200ms ease,
-    background-color 200ms ease,
-    box-shadow 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+/* WAAPI の押し込みが transform を使うので、浮き上がりは個別プロパティ translate で書く。 */
+@media (hover: hover) {
+  .krx-btn:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    translate: 0 -1px;
+  }
+}
+.krx-btn.krx-is-down,
+.krx-btn.krx-is-down:hover:not(:disabled) {
+  translate: none;
+}
+.krx-btn:focus-visible {
+  outline: 3px solid rgba(9, 105, 218, 0.35);
+  outline-offset: 2px;
+}
+.krx-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.krx-btn[aria-busy="true"]:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+
+/* 選択済み（テーマごと）
+   注意: 選択時の文字色は AA(4.5:1) 未満（heart 3.91 / confirm 3.32 / thanks 3.91）。モックアップどおりの値。
+   濃くする場合の候補: heart #be123c / confirm #047857 / thanks #be185d */
+.krx-btn.krx-theme-heart[aria-pressed="true"] {
+  background: var(--krx-heart-bg);
+  border-color: var(--krx-heart-border);
+  color: var(--krx-heart);
+}
+.krx-btn.krx-theme-confirm[aria-pressed="true"] {
+  background: var(--krx-confirm-bg);
+  border-color: var(--krx-confirm-border);
+  color: var(--krx-confirm);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+.krx-btn.krx-theme-helpful[aria-pressed="true"] {
+  background: var(--krx-helpful-bg);
+  border-color: var(--krx-helpful-border);
+  color: var(--krx-helpful);
+}
+.krx-btn.krx-theme-thanks[aria-pressed="true"] {
+  background: #fff1f2;
+  background: linear-gradient(135deg, #fff1f2 0%, #fce7f3 55%, #fef3c7 100%);
+  border-color: var(--krx-thanks-border);
+  color: var(--krx-thanks);
+  box-shadow: 0 2px 10px rgba(219, 39, 119, 0.14);
+}
+.krx-btn.krx-theme-emoji[aria-pressed="true"] {
+  background: #eef2f7;
+  background: color-mix(in srgb, var(--krx-c) 14%, #fff);
+  border-color: var(--krx-c);
+  color: var(--krx-c);
+}
+/* 色以外の手がかり: 絵文字・おじぎは選択済みで枠を太くする（SVG テーマは線画から塗りへ変わる）。 */
+.krx-btn.krx-theme-emoji[aria-pressed="true"],
+.krx-btn.krx-theme-thanks[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+.krx-btn.krx-theme-thanks[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px currentColor, 0 2px 10px rgba(219, 39, 119, 0.14);
+}
+
+/* アイコン */
+.krx-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: transparent;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: fill 0.2s ease;
+}
+.krx-btn[aria-pressed="true"] .krx-icon {
+  fill: currentColor;
+}
+.krx-theme-confirm .krx-icon {
+  fill: none;
+}
+.krx-theme-confirm[aria-pressed="true"] .krx-icon-circle {
+  fill: #059669;
+  stroke: #059669;
+}
+.krx-icon-check {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 0;
+  transition: stroke 0.2s ease;
+}
+.krx-theme-confirm[aria-pressed="true"] .krx-icon-check {
+  stroke: #fff;
+  stroke-width: 2.5;
+}
+.krx-bow,
+.krx-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* 選択演出（保存成功後に krx-is-bursting が付いている間だけ） */
+/* 注意: 親要素が overflow:hidden だとパーティクルが切れる可能性あり。kintone のスペース/ヘッダーで切れないか実機確認が必要 */
+.krx-particles {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.krx-particle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+}
+.krx-particle:nth-child(1) { --tx: -16px; --ty: -18px; }
+.krx-particle:nth-child(2) { --tx: 16px; --ty: -16px; }
+.krx-particle:nth-child(3) { --tx: 22px; --ty: 4px; }
+.krx-particle:nth-child(4) { --tx: -20px; --ty: 8px; }
+.krx-particle:nth-child(5) { --tx: 0px; --ty: -24px; }
+.krx-particle:nth-child(6) { --tx: 8px; --ty: 18px; }
+.krx-sparkles {
+  position: absolute;
+  left: 18px;
+  top: 2px;
+  pointer-events: none;
+  font-size: 11px;
+  opacity: 0;
+}
+.krx-btn.krx-is-bursting .krx-icon {
+  animation: krx-spring-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.krx-btn.krx-is-bursting .krx-icon-check {
+  animation: krx-draw-check 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.krx-btn.krx-is-bursting .krx-bow {
+  animation: krx-warm-bow 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.krx-btn.krx-is-bursting .krx-particle {
+  animation: krx-particle-fly 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.krx-btn.krx-is-bursting .krx-sparkles {
+  animation: krx-float-up 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes krx-spring-pop {
+  0% { transform: scale(0.7); }
+  50% { transform: scale(1.32); }
+  100% { transform: scale(1); }
+}
+@keyframes krx-draw-check {
+  0% { stroke-dashoffset: 20; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes krx-warm-bow {
+  0% { transform: scale(0.8) rotate(0deg); }
+  40% { transform: scale(1.32) rotate(-12deg); }
+  75% { transform: scale(1.12) rotate(8deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@keyframes krx-particle-fly {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+@keyframes krx-float-up {
+  0% { transform: translateY(4px) scale(0.6); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translateY(-22px) scale(1.15); opacity: 0; }
+}
+
+/* カウンター（スロット式） */
+.krx-count-slot {
+  display: inline-block;
+  overflow: hidden;
+  height: 1.3em;
+  line-height: 1.3em;
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+}
+.krx-count-slot[hidden] {
+  display: none;
+}
+.krx-count {
+  display: inline-block;
+}
+.krx-count.krx-slide-up {
+  animation: krx-slot-up 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.krx-count.krx-slide-down {
+  animation: krx-slot-down 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes krx-slot-up {
+  0% { transform: translateY(70%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes krx-slot-down {
+  0% { transform: translateY(-70%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* 読み込み中（スケルトン） */
+.krx-bar.krx-is-loading .krx-btn {
+  background: #e7ecee;
+  border-color: transparent;
+  color: transparent;
+  box-shadow: none;
+  opacity: 1;
+  cursor: progress;
+}
+.krx-bar.krx-is-loading .krx-btn > * {
+  visibility: hidden;
+}
+.krx-bar.krx-is-loading .krx-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  background: linear-gradient(100deg, transparent 25%, rgba(255, 255, 255, 0.75) 50%, transparent 75%);
+  transform: translateX(-100%);
+  animation: krx-shimmer 1100ms ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes krx-shimmer {
+  to {
+    transform: translateX(100%);
+  }
 }
 
 .krx-color-blue {
@@ -78,150 +323,6 @@
   --krx-c: var(--krx-gray);
 }
 
-@media (hover: hover) {
-  .krx-chip:hover:not(:disabled) {
-    filter: brightness(1.06);
-    translate: 0 -1px;
-  }
-}
-.krx-chip.krx-is-down,
-.krx-chip.krx-is-down:hover:not(:disabled) {
-  translate: none;
-}
-.krx-chip:focus-visible {
-  outline: 3px solid #333;
-  outline-offset: 2px;
-}
-.krx-chip:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-.krx-chip[aria-busy="true"]:disabled {
-  opacity: 1;
-  cursor: progress;
-}
-
-/* 付けている状態: 淡い背景、太いリング、✓。色だけに頼らない。 */
-.krx-chip[aria-pressed="true"],
-.krx-chip-active {
-  background: #e8f0fe;
-  background: color-mix(in srgb, var(--krx-c) 14%, #fff);
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--krx-c);
-}
-
-.krx-chip::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
-  background: rgba(0, 0, 0, 0.06);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 2;
-  transition: opacity 140ms ease;
-}
-.krx-chip.krx-is-down::after {
-  opacity: var(--krx-shade, 0.8);
-  transition-duration: 40ms;
-}
-
-.krx-emoji {
-  position: relative;
-  z-index: 1;
-  margin-right: 4px;
-}
-.krx-count {
-  position: relative;
-  z-index: 1;
-  margin-left: 6px;
-  font-variant-numeric: tabular-nums;
-}
-.krx-count:empty {
-  display: none;
-}
-
-.krx-ripple {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.12);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.krx-ic {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  width: 0;
-  margin-right: 0;
-  overflow: hidden;
-  transition:
-    width 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    margin 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.krx-has-ic .krx-ic {
-  width: 16px;
-  margin-right: 6px;
-}
-.krx-ic svg {
-  display: block;
-  flex: none;
-}
-.krx-ic path {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 0;
-}
-
-.krx-spin {
-  flex: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 0, 0, 0.2);
-  border-top-color: currentColor;
-  animation: krx-spin 700ms linear infinite;
-}
-@keyframes krx-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* 成功時のリング拡散 */
-.krx-burst {
-  position: absolute;
-  border: 3px solid var(--krx-c, currentColor);
-  border-radius: 999px;
-  pointer-events: none;
-}
-
-/* 読み込み中（スケルトン） */
-.krx-bar.krx-is-loading .krx-chip {
-  background: #e7ecee;
-  border-color: transparent;
-  color: transparent;
-  box-shadow: none;
-  opacity: 1;
-  cursor: progress;
-}
-.krx-bar.krx-is-loading .krx-chip::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(100deg, transparent 25%, rgba(255, 255, 255, 0.75) 50%, transparent 75%);
-  transform: translateX(-100%);
-  animation: krx-shimmer 1100ms ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes krx-shimmer {
-  to {
-    transform: translateX(100%);
-  }
-}
-
 .krx-confetti {
   position: fixed;
   pointer-events: none;
@@ -236,12 +337,12 @@
 }
 
 .krx-who {
-  min-height: 28px;
-  padding: 2px 10px;
-  border: 1px solid #ccc;
+  min-height: 38px;
+  padding: 2px 12px;
+  border: 1px solid var(--krx-border);
   border-radius: 999px;
   background: #fff;
-  color: #333;
+  color: var(--krx-muted);
   font-size: 12px;
   cursor: pointer;
 }
@@ -330,10 +431,7 @@
 }
 
 @media (max-width: 480px) {
-  .krx-chip {
-    min-height: 44px;
-    padding: 6px 16px;
-  }
+  .krx-btn,
   .krx-who {
     min-height: 44px;
   }
@@ -341,24 +439,27 @@
 
 /* 動きを減らす設定: 位置・大きさの動きを止め、色・不透明度だけを短く切り替える。 */
 @media (prefers-reduced-motion: reduce) {
-  .krx-chip:hover:not(:disabled) {
+  .krx-btn {
+    transition: color 100ms ease, background-color 100ms ease, border-color 100ms ease, opacity 100ms ease;
+  }
+  .krx-btn:hover:not(:disabled) {
     translate: none;
   }
-  .krx-chip {
-    transition:
-      opacity 100ms ease,
-      background-color 100ms ease,
-      box-shadow 100ms ease,
-      filter 100ms ease;
+  .krx-btn.krx-is-bursting .krx-icon,
+  .krx-btn.krx-is-bursting .krx-icon-check,
+  .krx-btn.krx-is-bursting .krx-bow,
+  .krx-btn.krx-is-bursting .krx-particle,
+  .krx-btn.krx-is-bursting .krx-sparkles,
+  .krx-count.krx-slide-up,
+  .krx-count.krx-slide-down {
+    animation: none;
   }
-  .krx-ic {
-    transition: width 0ms, margin 0ms;
+  .krx-particles,
+  .krx-sparkles {
+    display: none;
   }
-  .krx-bar.krx-is-loading .krx-chip::before {
+  .krx-bar.krx-is-loading .krx-btn::before {
     animation: none;
     opacity: 0;
-  }
-  .krx-spin {
-    animation: none;
   }
 }

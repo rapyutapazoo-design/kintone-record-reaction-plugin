@@ -3,7 +3,7 @@ import { HEADER_SPACE } from "../src/lib/reactionConfig";
 import { mergeBarsByPlacement, resolvePlacements } from "../src/lib/placement";
 import type { BarView, ChipView } from "../src/lib/view";
 
-const ch = (key: string): ChipView => ({ key, emoji: "x", label: key, color: "blue", reacted: false, count: null, users: null, confetti: false });
+const ch = (key: string): ChipView => ({ key, emoji: "x", label: key, color: "blue", theme: "emoji", reacted: false, count: null, users: null, confetti: false });
 
 describe("placement", () => {
   it("見つからないスペースは '' に置き換わる", () => {

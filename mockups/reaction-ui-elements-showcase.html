@@ -1,0 +1,1281 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>リアクションボタン UIデザイン＆CSS設計モックアップ（4種統一版）</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --surface: #ffffff;
+      --surface-subtle: #f3f4f6;
+      --border: #d0d7de;
+      --border-subtle: #e5e7eb;
+      --text-main: #1f2328;
+      --text-muted: #656d76;
+
+      /* 1. いいね (Heart / Pink) */
+      --accent-pink: #e11d48;
+      --accent-pink-bg: #ffe4e6;
+      --accent-pink-border: #fda4af;
+
+      /* 2. 確認しました (Check / Emerald Green) */
+      --accent-emerald: #059669;
+      --accent-emerald-bg: #d1fae5;
+      --accent-emerald-border: #6ee7b7;
+
+      /* 3. 参考になった (Helpful / Blue) */
+      --accent-blue: #0969da;
+      --accent-blue-bg: #ddf4ff;
+      --accent-blue-border: #54aeff;
+
+      /* 4. ありがとう (Thanks / Warm Rose & Amber) */
+      --accent-rose: #db2777;
+      --accent-rose-bg: #fce7f3;
+      --accent-rose-border: #f9a8d4;
+
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --shadow-sm: 0 1px 3px rgba(31, 35, 40, 0.06);
+      --shadow-popover: 0 8px 24px rgba(31, 35, 40, 0.14), 0 2px 6px rgba(31, 35, 40, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 36px 24px 64px;
+    }
+
+    /* Header */
+    header {
+      margin-bottom: 32px;
+    }
+    .eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      background: var(--accent-blue-bg);
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+    .tool-btn {
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .tool-btn:hover {
+      background: var(--surface-subtle);
+    }
+
+    /* Layout Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 920px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 22px 24px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .card-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .ref-badge {
+      background: var(--surface-subtle);
+      color: var(--text-main);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+    .card-header h2 {
+      font-size: 18px;
+      margin: 8px 0 6px;
+    }
+    .card-header p {
+      margin: 0;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    /* Interactive Stage */
+    .stage {
+      background: #f1f5f9;
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .kintone-record {
+      background: var(--surface);
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-md);
+      padding: 18px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 1;
+    }
+    .record-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .author-name {
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .record-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .record-body {
+      font-size: 13.5px;
+      margin: 0 0 16px;
+      color: #334155;
+    }
+
+    /* ==========================================================================
+       PATTERN 01: 単一・独立トグルボタン型（4種：いいね / 確認しました / 参考になった / ありがとう）
+       ========================================================================== */
+    .single-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .btn-single {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 5px 13px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.12s cubic-bezier(0.2, 0, 0, 1);
+    }
+    .btn-single:hover:not(:disabled) {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+    .btn-single:active:not(:disabled) {
+      transform: scale(0.93);
+    }
+    .btn-single:focus-visible {
+      outline: 3px solid rgba(9, 105, 218, 0.35);
+      outline-offset: 2px;
+    }
+    .btn-single:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* 1. いいね (Heart Theme) */
+    .btn-single.theme-heart[aria-pressed="true"] {
+      background: var(--accent-pink-bg);
+      border-color: var(--accent-pink-border);
+      color: var(--accent-pink);
+    }
+    /* 2. 確認しました (Confirm Emerald Theme) */
+    .btn-single.theme-confirm[aria-pressed="true"] {
+      background: var(--accent-emerald-bg);
+      border-color: var(--accent-emerald-border);
+      color: var(--accent-emerald);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+    }
+    /* 3. 参考になった (Helpful Blue Theme) */
+    .btn-single.theme-helpful[aria-pressed="true"] {
+      background: var(--accent-blue-bg);
+      border-color: var(--accent-blue-border);
+      color: var(--accent-blue);
+    }
+    /* 4. ありがとう (Thanks Warm Gradient Theme) */
+    .btn-single.theme-thanks[aria-pressed="true"] {
+      background: linear-gradient(135deg, #fff1f2 0%, #fce7f3 55%, #fef3c7 100%);
+      border-color: var(--accent-rose-border);
+      color: var(--accent-rose);
+      box-shadow: 0 2px 10px rgba(219, 39, 119, 0.14);
+    }
+
+    /* SVG Icon Outline -> Fill Morphing */
+    .btn-single .icon-svg {
+      width: 18px;
+      height: 18px;
+      fill: transparent;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.2s ease;
+      flex-shrink: 0;
+    }
+    .btn-single[aria-pressed="true"] .icon-svg {
+      fill: currentColor;
+      animation: springPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Confirm Checkmark Stroke Draw Animation */
+    .btn-single.theme-confirm .icon-svg {
+      fill: none !important;
+    }
+    .btn-single.theme-confirm[aria-pressed="true"] .icon-circle {
+      fill: #059669;
+      stroke: #059669;
+    }
+    .btn-single.theme-confirm .icon-check {
+      stroke-dasharray: 20;
+      stroke-dashoffset: 0;
+      transition: stroke 0.2s ease;
+    }
+    .btn-single.theme-confirm[aria-pressed="true"] .icon-check {
+      stroke: #ffffff;
+      stroke-width: 2.5;
+      animation: drawCheck 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes drawCheck {
+      0% { stroke-dashoffset: 20; }
+      100% { stroke-dashoffset: 0; }
+    }
+
+    /* Bowing Animation for "ありがとう" */
+    .btn-single .bow-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      line-height: 1;
+    }
+    .btn-single.theme-thanks[aria-pressed="true"] .bow-icon {
+      animation: warmBow 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes warmBow {
+      0% { transform: scale(0.8) rotate(0deg); }
+      40% { transform: scale(1.32) rotate(-12deg); }
+      75% { transform: scale(1.12) rotate(8deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    @keyframes springPop {
+      0% { transform: scale(0.7); }
+      50% { transform: scale(1.32); }
+      100% { transform: scale(1); }
+    }
+
+    /* Particle Burst Effect */
+    .particles {
+      position: absolute;
+      left: 22px;
+      top: 50%;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+    }
+    .particle {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0;
+    }
+    .btn-single.bursting .particle {
+      animation: particleFly 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .particle:nth-child(1) { --tx: -16px; --ty: -18px; }
+    .particle:nth-child(2) { --tx: 16px;  --ty: -16px; }
+    .particle:nth-child(3) { --tx: 22px;  --ty: 4px; }
+    .particle:nth-child(4) { --tx: -20px; --ty: 8px; }
+    .particle:nth-child(5) { --tx: 0px;   --ty: -24px; }
+    .particle:nth-child(6) { --tx: 8px;   --ty: 18px; }
+
+    @keyframes particleFly {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+    }
+
+    /* Floating Mini Hearts / Sparkles for "ありがとう" */
+    .float-sparkles {
+      position: absolute;
+      left: 18px;
+      top: 2px;
+      pointer-events: none;
+      font-size: 11px;
+      opacity: 0;
+    }
+    .btn-single.bursting .float-sparkles,
+    .rx-pill.bursting .float-sparkles {
+      animation: floatUpHeart 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes floatUpHeart {
+      0% { transform: translateY(4px) scale(0.6); opacity: 1; }
+      70% { opacity: 1; }
+      100% { transform: translateY(-22px) scale(1.15); opacity: 0; }
+    }
+
+    /* Slot-Machine Counter Roll */
+    .counter-slot {
+      display: inline-block;
+      overflow: hidden;
+      height: 1.3em;
+      line-height: 1.3em;
+      font-variant-numeric: tabular-nums;
+      vertical-align: middle;
+    }
+    .counter-value {
+      display: inline-block;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+    }
+    .counter-value.slide-up {
+      animation: slotUp 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .counter-value.slide-down {
+      animation: slotDown 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes slotUp {
+      0% { transform: translateY(70%); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes slotDown {
+      0% { transform: translateY(-70%); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ==========================================================================
+       PATTERN 02: 複数絵文字ピル＋クイックピッカー型（4種統一）
+       ========================================================================== */
+    .multi-container {
+      position: relative;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .pill-bar {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .rx-pill {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: var(--text-main);
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease, transform 0.1s ease;
+    }
+    .rx-pill:hover {
+      background: #eef2f6;
+      border-color: #94a3b8;
+      transform: translateY(-1px);
+    }
+    .rx-pill:active {
+      transform: scale(0.92);
+    }
+    .rx-pill:focus-visible {
+      outline: 3px solid rgba(9, 105, 218, 0.35);
+      outline-offset: 2px;
+    }
+
+    /* 1. いいねピル (Pink) */
+    .rx-pill.pill-heart[aria-pressed="true"] {
+      background: var(--accent-pink-bg);
+      border-color: var(--accent-pink-border);
+      color: var(--accent-pink);
+    }
+    /* 2. 確認しましたピル (Emerald Green + Avatar Stack) */
+    .rx-pill.pill-confirm[aria-pressed="true"] {
+      background: var(--accent-emerald-bg);
+      border-color: var(--accent-emerald-border);
+      color: var(--accent-emerald);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.12);
+    }
+    /* 3. 参考になったピル (Blue) */
+    .rx-pill.pill-helpful[aria-pressed="true"] {
+      background: var(--accent-blue-bg);
+      border-color: var(--accent-blue-border);
+      color: var(--accent-blue);
+    }
+    /* 4. ありがとうピル (Warm Rose Gradient + Bow Animation) */
+    .rx-pill.pill-thanks[aria-pressed="true"] {
+      background: linear-gradient(135deg, #fff1f2 0%, #fce7f3 55%, #fef3c7 100%);
+      border-color: var(--accent-rose-border);
+      color: var(--accent-rose);
+      box-shadow: 0 2px 8px rgba(219, 39, 119, 0.13);
+    }
+
+    .rx-pill .emoji {
+      font-size: 15px;
+      line-height: 1;
+      display: inline-block;
+    }
+    .rx-pill[aria-pressed="true"] .emoji {
+      animation: springPop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .rx-pill.pill-thanks[aria-pressed="true"] .emoji {
+      animation: warmBow 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .rx-pill .pill-label {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .rx-pill .count {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Mini Avatar Stack inside Confirm Pill */
+    .avatar-stack {
+      display: inline-flex;
+      align-items: center;
+      margin: 0 1px;
+    }
+    .mini-avatar {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid #fff;
+      background: #94a3b8;
+      color: #fff;
+      font-size: 8.5px;
+      font-weight: 700;
+      display: inline-grid;
+      place-items: center;
+      margin-left: -5px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+    .mini-avatar:first-child {
+      margin-left: 0;
+    }
+    .mini-avatar.you {
+      background: #059669;
+    }
+
+    /* Hover Attribution Tooltip (Who Reacted) */
+    .rx-pill .tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      background: #1e293b;
+      color: #f8fafc;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 20;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    }
+    .rx-pill .tooltip::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #1e293b;
+    }
+    .rx-pill:hover .tooltip,
+    .rx-pill:focus-visible .tooltip {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Add Reaction Trigger Button (😊+) */
+    .add-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 36px;
+      padding: 4px 11px;
+      border-radius: 999px;
+      border: 1px dashed #94a3b8;
+      background: transparent;
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .add-trigger:hover,
+    .add-trigger[aria-expanded="true"] {
+      background: #eef2f6;
+      border-style: solid;
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    /* Quick-React Bar Popover (4 unified reactions) */
+    .quick-picker {
+      position: absolute;
+      bottom: calc(100% - 2px);
+      left: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 6px 8px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      box-shadow: var(--shadow-popover);
+      z-index: 30;
+      animation: popoverIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes popoverIn {
+      0% { opacity: 0; transform: translateY(8px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .picker-item {
+      min-width: 58px;
+      height: 48px;
+      padding: 5px 8px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease;
+    }
+    .picker-item .p-emoji {
+      font-size: 19px;
+      line-height: 1;
+    }
+    .picker-item .p-text {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .picker-item:hover {
+      background: #f1f5f9;
+      transform: scale(1.12) translateY(-2px);
+    }
+    .picker-item[aria-pressed="true"] {
+      background: var(--accent-blue-bg);
+      border-color: var(--accent-blue-border);
+    }
+    .picker-item[aria-pressed="true"] .p-text {
+      color: var(--accent-blue);
+    }
+
+    .helper-box {
+      margin-top: 14px;
+      padding: 10px 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+    .helper-box strong {
+      color: var(--text-main);
+    }
+
+    /* Anatomy & CSS Footer inside Card */
+    .card-footer {
+      padding: 16px 24px 20px;
+      background: var(--surface);
+      border-top: 1px solid var(--border-subtle);
+      font-size: 12px;
+    }
+    .spec-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text-muted);
+    }
+    .spec-list li {
+      margin-bottom: 4px;
+    }
+    .spec-list code {
+      background: var(--surface-subtle);
+      color: #0f172a;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    /* ==========================================================================
+       SECTION 2: ステート（状態）カタログ & 4種のニュアンス比較
+       ========================================================================== */
+    .catalog-section {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow-sm);
+    }
+    .catalog-section h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+    .catalog-section p {
+      margin: 0 0 18px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 14px;
+    }
+    .state-box {
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      background: #fafbfc;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .state-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .state-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+    .sim-hover {
+      background: #f1f5f9 !important;
+      border-color: #94a3b8 !important;
+      transform: translateY(-1px);
+    }
+    .sim-active {
+      transform: scale(0.92) !important;
+      background: #e2e8f0 !important;
+    }
+    .sim-focus {
+      outline: 3px solid rgba(9, 105, 218, 0.4) !important;
+      outline-offset: 2px !important;
+    }
+
+    /* Code Viewer */
+    details.code-drawer {
+      margin-top: 12px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      background: #f8fafc;
+      overflow: hidden;
+    }
+    details.code-drawer summary {
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--accent-blue);
+      user-select: none;
+    }
+    pre.css-code {
+      margin: 0;
+      padding: 14px;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 11.5px;
+      line-height: 1.55;
+      overflow-x: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <span class="eyebrow">UI / CSS Design System Mockup</span>
+    <h1>リアクションボタン — 4種統一モックアップ</h1>
+    <p class="subtitle">
+      「PATTERN 01（単一・独立トグルボタン型）」と「PATTERN 02（複数リアクションピル＋クイックピッカー型）」の両方を、<strong>「いいね」「確認しました」「参考になった」「ありがとう」の4つのボタン</strong>に完全統一して比較できるモックアップです。
+    </p>
+    <div class="toolbar">
+      <button class="tool-btn" id="reset-all">すべての状態をリセット</button>
+      <button class="tool-btn" id="trigger-demo">アニメーションを一斉再生</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- =================================================================
+         CARD 1: PATTERN 01 - 単一・独立トグルボタン型（4種統一）
+         ================================================================= -->
+    <article class="card">
+      <div class="card-header">
+        <div class="card-tag">
+          <span>PATTERN 01 / DEDICATED TOGGLE BUTTONS</span>
+          <span class="ref-badge">参考: X / note / Material Design 3</span>
+        </div>
+        <h2>独立トグルボタン型（4種常時表示）</h2>
+        <p>
+          ピッカーを開かずにワンクリックで押せる独立ボタン設計。<br>
+          <strong>「いいね」「確認しました」「参考になった」「ありがとう」</strong>の4つそれぞれに固有の配色とマイクロインタラクションを持たせています。
+        </p>
+      </div>
+
+      <div class="stage">
+        <div class="kintone-record">
+          <div>
+            <div class="record-header">
+              <div class="avatar">佐</div>
+              <div>
+                <div class="author-name">佐藤 健太（営業推進部）</div>
+                <div class="record-meta">Kintone 日報・業務連絡アプリ ・ 15分前</div>
+              </div>
+            </div>
+            <p class="record-body">
+              来週の顧客提案資料テンプレートとトラブル対応早見表を更新しました！<br>
+              内容を確認した方や、実務で役立った方は下の4つのボタンからリアクションをお願いします。
+            </p>
+          </div>
+
+          <div>
+            <div class="single-bar" id="single-bar">
+              <!-- 1. いいね (Heart / Pink) -->
+              <button class="btn-single theme-heart" data-count="12" aria-pressed="false" aria-label="いいね 12件">
+                <span class="particles" aria-hidden="true">
+                  <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+                  <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+                </span>
+                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <span>いいね</span>
+                <span class="counter-slot"><span class="counter-value">12</span></span>
+              </button>
+
+              <!-- 2. 確認しました (Check / Emerald Green) -->
+              <button class="btn-single theme-confirm" data-count="18" data-label-off="確認しました" data-label-on="確認しました" aria-pressed="true" aria-label="確認しました 19件（選択済み）">
+                <span class="particles" aria-hidden="true">
+                  <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+                  <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+                </span>
+                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle class="icon-circle" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/>
+                  <path class="icon-check" d="M8.5 12.5l2.5 2.5 5-5" stroke="currentColor" stroke-width="2" fill="none"/>
+                </svg>
+                <span class="dynamic-label">確認しました</span>
+                <span class="counter-slot"><span class="counter-value">19</span></span>
+              </button>
+
+              <!-- 3. 参考になった (Thumbs-up / Blue) -->
+              <button class="btn-single theme-helpful" data-count="9" aria-pressed="false" aria-label="参考になった 9件">
+                <span class="particles" aria-hidden="true">
+                  <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+                  <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+                </span>
+                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                </svg>
+                <span>参考になった</span>
+                <span class="counter-slot"><span class="counter-value">9</span></span>
+              </button>
+
+              <!-- 4. ありがとう (Warm Rose Gradient + Bow & Floating Hearts) -->
+              <button class="btn-single theme-thanks" data-count="14" aria-pressed="true" aria-label="ありがとう 15件（選択済み）">
+                <span class="particles" aria-hidden="true">
+                  <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+                  <span class="particle"></span><span class="particle"></span><span class="particle"></span>
+                </span>
+                <span class="float-sparkles" aria-hidden="true">💖✨</span>
+                <span class="bow-icon" aria-hidden="true">🙏</span>
+                <span>ありがとう</span>
+                <span class="counter-slot"><span class="counter-value">15</span></span>
+              </button>
+            </div>
+
+            <div class="helper-box">
+              💡 <strong>パターン1の4種デザイン特徴：</strong><br>
+              ・<strong>いいね（❤️ ピンク）</strong> / <strong>参考になった（👍 ブルー）</strong>：SVGアイコンの線画→塗りつぶし変化＋放射パーティクル。<br>
+              ・<strong>確認しました（✓ エメラルドグリーン）</strong>：円が緑に塗りつぶされ、白抜きチェックマークがシュッと手書き風に描画。<br>
+              ・<strong>ありがとう（🙏 暖色グラデーション）</strong>：ローズ〜アンバーの柔らかいグラデーション背景＋お辞儀＆浮遊ハート（💖✨）。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <strong>パターン1の設計・CSS要素：</strong>
+        <ul class="spec-list">
+          <li><strong>4種の意味に応じたカラー設計：</strong> 共感＝ピンク（<code>#e11d48</code>）、業務確認＝エメラルド（<code>#059669</code>）、有益＝ブルー（<code>#0969da</code>）、感謝＝暖色グラデーション。</li>
+          <li><strong>スロット式カウンター：</strong> 数字の増減時に上下へスライドし、<code>font-variant-numeric: tabular-nums</code> で横揺れを防止。</li>
+        </ul>
+        <details class="code-drawer">
+          <summary>パターン1の主要CSSを表示</summary>
+          <pre class="css-code"><code>/* 1. いいね */
+.btn-single.theme-heart[aria-pressed="true"] {
+  background: #ffe4e6; border-color: #fda4af; color: #e11d48;
+}
+/* 2. 確認しました（チェック描画アニメーション付き） */
+.btn-single.theme-confirm[aria-pressed="true"] {
+  background: #d1fae5; border-color: #6ee7b7; color: #059669;
+}
+/* 3. 参考になった */
+.btn-single.theme-helpful[aria-pressed="true"] {
+  background: #ddf4ff; border-color: #54aeff; color: #0969da;
+}
+/* 4. ありがとう（暖色グラデーション） */
+.btn-single.theme-thanks[aria-pressed="true"] {
+  background: linear-gradient(135deg, #fff1f2 0%, #fce7f3 55%, #fef3c7 100%);
+  border-color: #f9a8d4; color: #db2777;
+}</code></pre>
+        </details>
+      </div>
+    </article>
+
+    <!-- =================================================================
+         CARD 2: PATTERN 02 - 複数リアクションピル＋クイックピッカー型（4種統一）
+         ================================================================= -->
+    <article class="card">
+      <div class="card-header">
+        <div class="card-tag">
+          <span>PATTERN 02 / REACTION PILLS &amp; QUICK PICKER</span>
+          <span class="ref-badge">参考: Slack / GitHub Primer / Discord</span>
+        </div>
+        <h2>複数リアクションピル＋クイックピッカー型（4種統一）</h2>
+        <p>
+          同じ<strong>「いいね」「確認しました」「参考になった」「ありがとう」</strong>の4種をコンパクトなピル（Chip）と「😊＋」のクイックピッカーで扱う設計。ホバー時のツールチップや確認者アバター重なりを備えています。
+        </p>
+      </div>
+
+      <div class="stage">
+        <div class="kintone-record">
+          <div>
+            <div class="record-header">
+              <div class="avatar" style="background: linear-gradient(135deg, #10b981, #047857);">鈴</div>
+              <div>
+                <div class="author-name">鈴木 彩香（プロダクト開発チーム）</div>
+                <div class="record-meta">Kintone 日報・業務連絡アプリ ・ 15分前</div>
+              </div>
+            </div>
+            <p class="record-body">
+              来週の顧客提案資料テンプレートとトラブル対応早見表を更新しました！<br>
+              ピルを直接押すか、「😊＋」のクイックピッカーから4種のリアクションを追加・解除できます。
+            </p>
+          </div>
+
+          <div>
+            <div class="multi-container" id="multi-container">
+              <!-- Quick Reaction Popover (4 unified items) -->
+              <div class="quick-picker" id="quick-picker" role="toolbar" aria-label="クイックリアクション選択" hidden></div>
+
+              <!-- Pill Bar -->
+              <div class="pill-bar" id="pill-bar"></div>
+            </div>
+
+            <div class="helper-box">
+              💡 <strong>パターン2の4種デザイン特徴：</strong><br>
+              ・<strong>ピルにマウスを乗せる（ホバー）</strong>と、「誰がそのリアクションを押したか」が吹き出しツールチップで表示されます。<br>
+              ・<strong>「✅ 確認しました」ピル</strong>には確認者のミニアバター（<code>佐</code> <code>田</code> <code>あ</code>）が重なって表示され、<strong>「🙏 ありがとう」ピル</strong>は暖色グラデーション＋浮遊ハート（💖✨）が発火します。<br>
+              ・カウントが <code>0</code> になったピルはバーから消え、<strong>「😊＋」ピッカー（4種）</strong>からいつでも再追加できます。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <strong>パターン2の設計・CSS要素：</strong>
+        <ul class="spec-list">
+          <li><strong>ピルごとの4種テーマカラー：</strong> ピル型でも「❤️ いいね（ピンク）」「✅ 確認しました（グリーン）」「💡 参考になった（ブルー）」「🙏 ありがとう（暖色グラデーション）」のニュアンスを保持。</li>
+          <li><strong>ソーシャルプルーフ（誰が押したか）：</strong> <code>.tooltip</code> によるメンバー一覧表示と、確認ピル内の <code>.mini-avatar</code> 重なり表示。</li>
+        </ul>
+        <details class="code-drawer">
+          <summary>パターン2の主要CSSを表示</summary>
+          <pre class="css-code"><code>/* パターン2：4種それぞれのピル選択時スタイル */
+.rx-pill.pill-heart[aria-pressed="true"]   { background: #ffe4e6; border-color: #fda4af; color: #e11d48; }
+.rx-pill.pill-confirm[aria-pressed="true"] { background: #d1fae5; border-color: #6ee7b7; color: #059669; }
+.rx-pill.pill-helpful[aria-pressed="true"] { background: #ddf4ff; border-color: #54aeff; color: #0969da; }
+.rx-pill.pill-thanks[aria-pressed="true"]  {
+  background: linear-gradient(135deg, #fff1f2 0%, #fce7f3 55%, #fef3c7 100%);
+  border-color: #f9a8d4; color: #db2777;
+}</code></pre>
+        </details>
+      </div>
+    </article>
+  </div>
+
+  <!-- =================================================================
+       SECTION 2: 5つのUIステート（状態）解剖カタログ
+       ================================================================= -->
+  <section class="catalog-section">
+    <h3>2. ステート（状態）設計のビジュアル一覧</h3>
+    <p>4種のボタンすべてに共通する、ユーザーが「押せること」「押している瞬間」「自分が選択済みであること」を直感的に判断するための5つの基本ステートです。</p>
+
+    <div class="state-grid">
+      <div class="state-box">
+        <span class="state-name">① Default (未選択)</span>
+        <button class="btn-single theme-confirm" aria-pressed="false" tabindex="-1">
+          <svg class="icon-svg" viewBox="0 0 24 24"><circle class="icon-circle" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><path class="icon-check" d="M8.5 12.5l2.5 2.5 5-5" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+          <span>確認しました</span><span>18</span>
+        </button>
+        <p class="state-desc">控えめなグレー枠と線画アイコン。まだ自分が押していないことが一目でわかる状態。</p>
+      </div>
+
+      <div class="state-box">
+        <span class="state-name">② Hover / Focus</span>
+        <button class="btn-single theme-confirm sim-hover sim-focus" aria-pressed="false" tabindex="-1">
+          <svg class="icon-svg" viewBox="0 0 24 24"><circle class="icon-circle" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><path class="icon-check" d="M8.5 12.5l2.5 2.5 5-5" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+          <span>確認しました</span><span>18</span>
+        </button>
+        <p class="state-desc">背景がわずかに濃くなり <code>translateY(-1px)</code> で浮き上がる。キーボード操作時はフォーカスリングを表示。</p>
+      </div>
+
+      <div class="state-box">
+        <span class="state-name">③ Active (押下中)</span>
+        <button class="btn-single theme-confirm sim-active" aria-pressed="false" tabindex="-1">
+          <svg class="icon-svg" viewBox="0 0 24 24"><circle class="icon-circle" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><path class="icon-check" d="M8.5 12.5l2.5 2.5 5-5" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+          <span>確認しました</span><span>18</span>
+        </button>
+        <p class="state-desc">クリックの瞬間に <code>scale(0.93)</code> で縮小し、物理ボタンを押した手応えを返す。</p>
+      </div>
+
+      <div class="state-box">
+        <span class="state-name">④ Selected (選択済み)</span>
+        <button class="btn-single theme-confirm" aria-pressed="true" tabindex="-1">
+          <svg class="icon-svg" viewBox="0 0 24 24"><circle class="icon-circle" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><path class="icon-check" d="M8.5 12.5l2.5 2.5 5-5" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+          <span>確認しました</span><span>19</span>
+        </button>
+        <p class="state-desc">各ボタンのテーマカラーで塗りつぶされ、アイコンと枠線が強調されて選択済みを明示。</p>
+      </div>
+
+      <div class="state-box">
+        <span class="state-name">⑤ Disabled (無効)</span>
+        <button class="btn-single theme-confirm" aria-pressed="false" disabled tabindex="-1">
+          <svg class="icon-svg" viewBox="0 0 24 24"><circle class="icon-circle" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><path class="icon-check" d="M8.5 12.5l2.5 2.5 5-5" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+          <span>確認しました</span><span>18</span>
+        </button>
+        <p class="state-desc">アーカイブ済みレコードや権限外の場合に <code>opacity: 0.45</code> と <code>cursor: not-allowed</code> で表示。</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // =========================================================================
+  // PATTERN 1: 単一・独立トグルボタンの制御（4種：いいね / 確認しました / 参考になった / ありがとう）
+  // =========================================================================
+  const allSingleButtons = document.querySelectorAll('#single-bar .btn-single');
+
+  function toggleSingleButton(btn, forceState) {
+    const currentlyPressed = btn.getAttribute('aria-pressed') === 'true';
+    const nextPressed = typeof forceState === 'boolean' ? forceState : !currentlyPressed;
+    if (currentlyPressed === nextPressed) return;
+
+    const baseCount = Number(btn.dataset.count);
+    const nextCount = baseCount + (nextPressed ? 1 : 0);
+
+    btn.setAttribute('aria-pressed', String(nextPressed));
+
+    // スロット風カウンター更新
+    const valEl = btn.querySelector('.counter-value');
+    if (valEl) {
+      valEl.classList.remove('slide-up', 'slide-down');
+      void valEl.offsetWidth;
+      valEl.textContent = nextCount;
+      valEl.classList.add(nextPressed ? 'slide-up' : 'slide-down');
+    }
+
+    // パーティクル・浮遊ハート発火
+    if (nextPressed) {
+      btn.classList.remove('bursting');
+      void btn.offsetWidth;
+      btn.classList.add('bursting');
+    }
+  }
+
+  allSingleButtons.forEach(btn => {
+    btn.addEventListener('click', () => toggleSingleButton(btn));
+  });
+
+  // =========================================================================
+  // PATTERN 2: 複数リアクションピル + クイックピッカーの制御（同じ4種に統一）
+  // =========================================================================
+  const initialReactions = [
+    {
+      emoji: '❤️',
+      label: 'いいね',
+      theme: 'pill-heart',
+      showAvatars: false,
+      sparkles: false,
+      baseCount: 12,
+      users: ['田中', '高橋', '渡辺', '伊藤', '山本', '中村'],
+      active: false
+    },
+    {
+      emoji: '✅',
+      label: '確認しました',
+      theme: 'pill-confirm',
+      showAvatars: true,
+      sparkles: false,
+      baseCount: 18,
+      users: ['佐藤', '田中', '高橋', '渡辺', '伊藤', '山本'],
+      active: true
+    },
+    {
+      emoji: '👍',
+      label: '参考になった',
+      theme: 'pill-helpful',
+      showAvatars: false,
+      sparkles: false,
+      baseCount: 9,
+      users: ['小林', '加藤', '吉田', '松本'],
+      active: false
+    },
+    {
+      emoji: '🙏',
+      label: 'ありがとう',
+      theme: 'pill-thanks',
+      showAvatars: false,
+      sparkles: true,
+      baseCount: 14,
+      users: ['加藤', '吉田', '山田', '佐々木'],
+      active: true
+    }
+  ];
+
+  let reactionsState = JSON.parse(JSON.stringify(initialReactions));
+  const pillBar = document.getElementById('pill-bar');
+  const quickPicker = document.getElementById('quick-picker');
+
+  function renderMultiReactions(justActivatedIdx = -1) {
+    const activePillsHtml = reactionsState
+      .map((item, idx) => {
+        const total = item.baseCount + (item.active ? 1 : 0);
+        if (total === 0) return '';
+
+        const whoList = item.active ? [...item.users, 'あなた'] : item.users;
+        const tooltipText = `${whoList.slice(0, 3).join('、')}${whoList.length > 3 ? ` ほか${whoList.length - 3}人` : ''}が「${item.label} (${item.emoji})」でリアクション`;
+
+        // 確認しましたピル用のミニアバター重なり表示
+        let avatarsHtml = '';
+        if (item.showAvatars) {
+          const colors = ['#3b82f6', '#8b5cf6'];
+          const baseAvatars = item.users.slice(0, 2).map((u, i) =>
+            `<span class="mini-avatar" style="background:${colors[i % colors.length]}">${u[0]}</span>`
+          ).join('');
+          const youAvatar = item.active ? `<span class="mini-avatar you">あ</span>` : '';
+          avatarsHtml = `<span class="avatar-stack" aria-hidden="true">${baseAvatars}${youAvatar}</span>`;
+        }
+
+        const sparklesHtml = item.sparkles ? `<span class="float-sparkles" aria-hidden="true">💖✨</span>` : '';
+        const burstClass = idx === justActivatedIdx ? 'bursting' : '';
+
+        return `
+          <button class="rx-pill ${item.theme} ${burstClass}" data-idx="${idx}" aria-pressed="${item.active}" aria-label="${item.label} ${total}件 ${item.active ? '（選択済み）' : ''}">
+            ${sparklesHtml}
+            <span class="emoji" aria-hidden="true">${item.emoji}</span>
+            <span class="pill-label">${item.label}</span>
+            ${avatarsHtml}
+            <span class="count">${total}</span>
+            <span class="tooltip" role="tooltip">${tooltipText}</span>
+          </button>
+        `;
+      })
+      .join('');
+
+    const isPickerOpen = !quickPicker.hidden;
+    pillBar.innerHTML = activePillsHtml + `
+      <button class="add-trigger" id="add-trigger" aria-expanded="${isPickerOpen}" aria-controls="quick-picker" title="リアクションを選択">
+        <span>😊</span><span>＋</span>
+      </button>
+    `;
+
+    quickPicker.innerHTML = reactionsState
+      .map((item, idx) => `
+        <button class="picker-item" data-idx="${idx}" aria-pressed="${item.active}" title="${item.label} (${item.emoji})">
+          <span class="p-emoji">${item.emoji}</span>
+          <span class="p-text">${item.label}</span>
+        </button>
+      `)
+      .join('');
+  }
+
+  pillBar.addEventListener('click', e => {
+    const pill = e.target.closest('.rx-pill');
+    if (pill) {
+      const idx = Number(pill.dataset.idx);
+      reactionsState[idx].active = !reactionsState[idx].active;
+      renderMultiReactions(reactionsState[idx].active ? idx : -1);
+      return;
+    }
+    const trigger = e.target.closest('#add-trigger');
+    if (trigger) {
+      quickPicker.hidden = !quickPicker.hidden;
+      trigger.setAttribute('aria-expanded', String(!quickPicker.hidden));
+    }
+  });
+
+  quickPicker.addEventListener('click', e => {
+    const item = e.target.closest('.picker-item');
+    if (!item) return;
+    const idx = Number(item.dataset.idx);
+    reactionsState[idx].active = !reactionsState[idx].active;
+    quickPicker.hidden = true;
+    renderMultiReactions(reactionsState[idx].active ? idx : -1);
+  });
+
+  document.addEventListener('click', e => {
+    if (!quickPicker.hidden && !e.target.closest('#multi-container')) {
+      quickPicker.hidden = true;
+      renderMultiReactions();
+    }
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !quickPicker.hidden) {
+      quickPicker.hidden = true;
+      renderMultiReactions();
+    }
+  });
+
+  renderMultiReactions();
+
+  // =========================================================================
+  // ツールバー（リセット＆デモ再生）
+  // =========================================================================
+  document.getElementById('reset-all').addEventListener('click', () => {
+    allSingleButtons.forEach(btn => toggleSingleButton(btn, false));
+
+    reactionsState = JSON.parse(JSON.stringify(initialReactions));
+    reactionsState.forEach(r => r.active = false);
+    quickPicker.hidden = true;
+    renderMultiReactions();
+  });
+
+  document.getElementById('trigger-demo').addEventListener('click', () => {
+    allSingleButtons.forEach((btn, i) => {
+      setTimeout(() => {
+        toggleSingleButton(btn, false);
+        setTimeout(() => toggleSingleButton(btn, true), 120);
+      }, i * 160);
+    });
+
+    reactionsState.forEach((_, idx) => {
+      setTimeout(() => {
+        reactionsState[idx].active = true;
+        renderMultiReactions(idx);
+      }, 650 + idx * 160);
+    });
+  });
+</script>
+</body>
+</html>

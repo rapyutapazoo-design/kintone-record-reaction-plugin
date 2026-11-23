@@ -21,11 +21,23 @@ export const COLOR_LABELS: Record<ReactionColor, string> = {
   gray: "灰",
 };
 
+// ボタンの見た目（アイコンと選択時の演出）。emoji は従来どおり絵文字をそのまま表示する。
+export const REACTION_THEMES = ["heart", "confirm", "helpful", "thanks", "emoji"] as const;
+export type ReactionTheme = (typeof REACTION_THEMES)[number];
+export const THEME_LABELS: Record<ReactionTheme, string> = {
+  heart: "ハート",
+  confirm: "チェック",
+  helpful: "グッド",
+  thanks: "おじぎ",
+  emoji: "絵文字",
+};
+
 export interface ReactionDef {
   key: string;
   emoji: string;
   label: string;
-  color: ReactionColor;
+  color: ReactionColor; // emoji テーマのときだけ使う
+  theme: ReactionTheme;
   enabled: boolean;
   spaceId: string; // "" = 共通の配置先、HEADER_SPACE = ヘッダー
   countField: string; // "" = 割当なし
@@ -56,10 +68,10 @@ export interface StoredConfig {
 export function defaultReactions(): ReactionDef[] {
   const base = { enabled: true, spaceId: "", countField: "", confetti: false };
   return [
-    { key: "like", emoji: "👍", label: "いいね", color: "blue", ...base },
-    { key: "favorite", emoji: "⭐", label: "お気に入り", color: "orange", ...base },
-    { key: "want_to_go", emoji: "📍", label: "行きたい", color: "red", ...base },
-    { key: "interested", emoji: "👀", label: "気になる", color: "purple", ...base },
+    { key: "like", emoji: "❤️", label: "いいね", color: "red", theme: "heart", ...base },
+    { key: "ok", emoji: "✅", label: "了解", color: "green", theme: "confirm", ...base },
+    { key: "helpful", emoji: "👍", label: "なるほど", color: "blue", theme: "helpful", ...base },
+    { key: "thanks", emoji: "🙏", label: "ありがとう", color: "orange", theme: "thanks", ...base },
   ];
 }
 
@@ -86,6 +98,11 @@ export function serializeConfig(c: ReactionConfig): string {
 export function colorOrDefault(v: unknown, index: number): ReactionColor {
   if (typeof v === "string" && (REACTION_COLORS as readonly string[]).includes(v)) return v as ReactionColor;
   return REACTION_COLORS[index % REACTION_COLORS.length] as ReactionColor;
+}
+
+export function themeOrDefault(v: unknown): ReactionTheme {
+  if (typeof v === "string" && (REACTION_THEMES as readonly string[]).includes(v)) return v as ReactionTheme;
+  return "emoji";
 }
 
 export type ParseResult =
@@ -155,6 +172,7 @@ export function parseConfig(raw: string | undefined): ParseResult {
       emoji: r.emoji,
       label: r.label,
       color: colorOrDefault(r.color, i),
+      theme: themeOrDefault(r.theme),
       enabled: r.enabled !== false,
       spaceId: str(r.spaceId),
       countField: str(r.countField),
@@ -223,6 +241,7 @@ export function validateConfig(
     const lg = countGraphemes(label);
     if (lg < 1 || lg > LABEL_MAX || hasControlChars(label)) push(`${n}行目: 表示名は1〜${LABEL_MAX}文字で入力してください。`);
     if (!(REACTION_COLORS as readonly string[]).includes(r.color)) push(`${n}行目: 色が正しくありません。`);
+    if (!(REACTION_THEMES as readonly string[]).includes(r.theme)) push(`${n}行目: 見た目が正しくありません。`);
     if (r.spaceId !== "" && r.spaceId !== HEADER_SPACE && r.spaceId.startsWith("__")) push(`${n}行目: 配置先が正しくありません。`);
     if (r.countField !== "") {
       if (!numbers.has(r.countField)) push(`${n}行目: 回数欄には存在する数値フィールドを選択してください。`);
@@ -255,6 +274,7 @@ export function newReactionDef(existingKeys: string[], index: number): ReactionD
     emoji: "✨",
     label: "新しいリアクション",
     color: REACTION_COLORS[index % REACTION_COLORS.length] as ReactionColor,
+    theme: "emoji",
     enabled: true,
     spaceId: "",
     countField: "",

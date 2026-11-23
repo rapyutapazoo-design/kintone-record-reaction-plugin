@@ -3,7 +3,6 @@ import {
   CONFETTI_PALETTE,
   ENTER_RELEASE_MS,
   PRESS_P2,
-  burstScale,
   confettiParticles,
   finishTimeoutMs,
   keyPressPhase,
@@ -11,9 +10,9 @@ import {
   pressUpFrames,
   pressUpTiming,
   reduceAnimation,
-  rippleGeometry,
-  staggerDelay,
+  shouldBurst,
   shouldConfetti,
+  slotDirection,
   type Frame,
 } from "../src/lib/motionPlan";
 
@@ -69,16 +68,13 @@ describe("finishTimeoutMs", () => {
 });
 
 describe("押し込み（P2）", () => {
-  it("沈み込みのフレームは none → translateY(1px) scale(.955)", () => {
-    expect(pressDownFrames()).toEqual([{ transform: "none" }, { transform: "translateY(1px) scale(0.955)" }]);
+  it("沈み込みのフレームは none → scale(.93)", () => {
+    expect(pressDownFrames()).toEqual([{ transform: "none" }, { transform: "scale(0.93)" }]);
   });
-  it("通常の戻りは3フレームで offset .4 に scale(1.03)、240ms", () => {
+  it("通常の戻りは2フレームで 120ms、easing は PRESS_P2.easing", () => {
     const kf = pressUpFrames("matrix(1,0,0,1,0,1)", false);
-    expect(kf).toHaveLength(3);
-    expect(kf[0]).toMatchObject({ transform: "matrix(1,0,0,1,0,1)", easing: PRESS_P2.easing });
-    expect(kf[1]).toMatchObject({ transform: "scale(1.03)", offset: 0.4 });
-    expect(kf[2]).toEqual({ transform: "none" });
-    expect(pressUpTiming(false).duration).toBe(240);
+    expect(kf).toEqual([{ transform: "matrix(1,0,0,1,0,1)" }, { transform: "none" }]);
+    expect(pressUpTiming(false)).toEqual({ duration: 120, easing: PRESS_P2.easing });
   });
   it("キャンセル時は2フレームで 160ms ease-out", () => {
     expect(pressUpFrames("x", true)).toEqual([{ transform: "x" }, { transform: "none" }]);
@@ -86,40 +82,25 @@ describe("押し込み（P2）", () => {
   });
 });
 
-describe("rippleGeometry", () => {
-  const rect = { left: 100, top: 50, width: 200, height: 40 };
-  it("null（キーボード）は中心から最遠角まで", () => {
-    const g = rippleGeometry(rect, null);
-    expect(g.size).toBeCloseTo(Math.hypot(100, 20) * 2);
-    expect(g.left).toBeCloseTo(100 - g.size / 2);
-    expect(g.top).toBeCloseTo(20 - g.size / 2);
-  });
-  it("左上の角を押すと右下の角までの距離×2", () => {
-    const g = rippleGeometry(rect, { x: 100, y: 50 });
-    expect(g.size).toBeCloseTo(Math.hypot(200, 40) * 2);
-    expect(g.left).toBeCloseTo(-g.size / 2);
-    expect(g.top).toBeCloseTo(-g.size / 2);
-  });
-  it("辺の近くを押しても、遠い側の角に届く", () => {
-    const g = rippleGeometry(rect, { x: 290, y: 70 });
-    expect(g.size).toBeCloseTo(Math.hypot(190, 20) * 2);
-    expect(g.left).toBeCloseTo(190 - g.size / 2);
+describe("shouldBurst", () => {
+  it("付けたとき、かつ動きを減らさないときだけ true", () => {
+    expect(shouldBurst(true, false)).toBe(true);
+    expect(shouldBurst(true, true)).toBe(false);
+    expect(shouldBurst(false, false)).toBe(false);
+    expect(shouldBurst(false, true)).toBe(false);
   });
 });
 
-describe("burstScale / staggerDelay", () => {
-  it("通常は幅・高さに対する拡大率", () => {
-    expect(burstScale(200, 40)).toEqual({ sx: 1.1, sy: 1.5 });
-    expect(burstScale(100, 50, 10)).toEqual({ sx: 1.1, sy: 1.2 });
-  });
-  it("0 や非有限は 1", () => {
-    expect(burstScale(0, 40)).toEqual({ sx: 1, sy: 1.5 });
-    expect(burstScale(200, 0)).toEqual({ sx: 1.1, sy: 1 });
-    expect(burstScale(NaN, -1)).toEqual({ sx: 1, sy: 1 });
-  });
-  it("staggerDelay は 40ms ずつ", () => {
-    expect([0, 1, 2].map((i) => staggerDelay(i))).toEqual([0, 40, 80]);
-    expect(staggerDelay(3, 10)).toBe(30);
+describe("slotDirection", () => {
+  it("増減の向きを返し、比較できないときは null", () => {
+    expect(slotDirection("12", "13")).toBe("up");
+    expect(slotDirection("13", "12")).toBe("down");
+    expect(slotDirection("", "3")).toBeNull();
+    expect(slotDirection("3", "")).toBeNull();
+    expect(slotDirection("5", "5")).toBeNull();
+    expect(slotDirection("999", "999+")).toBe("up");
+    expect(slotDirection("999+", "999+")).toBeNull();
+    expect(slotDirection("a", "1")).toBeNull();
   });
 });
 

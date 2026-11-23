@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_MAPPING } from "../src/lib/fields";
 import { defaultConfig, HEADER_SPACE, type ReactionConfig } from "../src/lib/reactionConfig";
-import { buildBars, chipAriaLabel, chipTitle, formatCount, optimisticToggle, type BarView, type ChipView } from "../src/lib/view";
+import { buildBars, chipAriaLabel, chipName, chipTitle, formatCount, optimisticToggle, type BarView, type ChipView } from "../src/lib/view";
 import { makeRecord, makeRow } from "./helpers/records";
 
 const rows = [
   makeRow("1", { userCode: "me", userName: "私", key: "like" }),
   makeRow("2", { userCode: "a", userName: "A", key: "like" }),
-  makeRow("3", { userCode: "b", userName: "B", key: "favorite" }),
+  makeRow("3", { userCode: "b", userName: "B", key: "ok" }),
 ];
 const chip = (b: BarView[], key: string): ChipView => b.flatMap((x) => x.chips).find((c) => c.key === key)!;
 function cfg(): ReactionConfig {
@@ -59,7 +59,7 @@ describe("buildBars: users / reacted", () => {
     const c = cfg();
     const latest = makeRecord({ rows });
     expect(chip(buildBars({ config: c, eventRecord: noTable, latestRecord: latest, userCode: "me" }), "like").reacted).toBe(true);
-    expect(chip(buildBars({ config: c, eventRecord: noTable, latestRecord: latest, userCode: "me" }), "favorite").reacted).toBe(false);
+    expect(chip(buildBars({ config: c, eventRecord: noTable, latestRecord: latest, userCode: "me" }), "ok").reacted).toBe(false);
     expect(chip(buildBars({ config: c, eventRecord: noTable, latestRecord: null, userCode: "me" }), "like").reacted).toBe(false);
     expect(chip(buildBars({ config: c, eventRecord: makeRecord({ rows }), latestRecord: null, userCode: "me" }), "like").reacted).toBe(true);
   });
@@ -73,8 +73,8 @@ describe("buildBars: 配置先", () => {
     c.reactions[2]!.enabled = false;
     const bars = buildBars({ config: c, eventRecord: makeRecord({ rows }), latestRecord: null, userCode: "me" });
     expect(bars.map((b) => b.spaceId)).toEqual(["common", "own"]);
-    expect(bars[0]!.chips.map((x) => x.key)).toEqual(["like", "interested"]);
-    expect(bars[1]!.chips.map((x) => x.key)).toEqual(["favorite"]);
+    expect(bars[0]!.chips.map((x) => x.key)).toEqual(["like", "thanks"]);
+    expect(bars[1]!.chips.map((x) => x.key)).toEqual(["ok"]);
   });
   it("HEADER_SPACE は共通の配置先がスペースでもヘッダー('')になる", () => {
     const c = cfg();
@@ -82,7 +82,17 @@ describe("buildBars: 配置先", () => {
     c.reactions[1]!.spaceId = HEADER_SPACE;
     const bars = buildBars({ config: c, eventRecord: makeRecord({ rows }), latestRecord: null, userCode: "me" });
     expect(bars.map((b) => b.spaceId)).toEqual(["common", ""]);
-    expect(bars[1]!.chips.map((x) => x.key)).toEqual(["favorite"]);
+    expect(bars[1]!.chips.map((x) => x.key)).toEqual(["ok"]);
+  });
+});
+
+describe("theme", () => {
+  it("buildBars は定義の theme を通し、optimisticToggle 後も保つ", () => {
+    const bars = buildBars({ config: cfg(), eventRecord: makeRecord({ rows }), latestRecord: null, userCode: "me" });
+    expect(chip(bars, "like").theme).toBe("heart");
+    expect(chip(bars, "ok").theme).toBe("confirm");
+    const out = optimisticToggle(bars, "like", "私");
+    expect(chip(out, "like").theme).toBe("heart");
   });
 });
 
@@ -91,8 +101,8 @@ describe("optimisticToggle", () => {
     {
       spaceId: "",
       chips: [
-        { key: "like", emoji: "👍", label: "いいね", color: "blue", reacted: false, count: 0, users: { names: [], more: 0 }, confetti: false },
-        { key: "fav", emoji: "⭐", label: "お気に入り", color: "orange", reacted: true, count: null, users: null, confetti: false },
+        { key: "like", emoji: "👍", label: "いいね", color: "blue", theme: "emoji", reacted: false, count: 0, users: { names: [], more: 0 }, confetti: false },
+        { key: "fav", emoji: "⭐", label: "お気に入り", color: "orange", theme: "emoji", reacted: true, count: null, users: null, confetti: false },
       ],
     },
   ];
@@ -116,7 +126,7 @@ describe("optimisticToggle", () => {
 
 describe("optimisticToggle: maxListUsers 境界", () => {
   const bar = (names: string[], more: number, reacted: boolean): BarView[] => [
-    { spaceId: "", chips: [{ key: "like", emoji: "👍", label: "いいね", color: "blue", reacted, count: names.length + more, users: { names, more }, confetti: false }] },
+    { spaceId: "", chips: [{ key: "like", emoji: "👍", label: "いいね", color: "blue", theme: "emoji", reacted, count: names.length + more, users: { names, more }, confetti: false }] },
   ];
   it("本人が more 側にいる取り消しでは more が減り names は変わらない", () => {
     const out = optimisticToggle(bar(["A", "B"], 2, true), "like", "私", 2);
@@ -139,10 +149,15 @@ describe("optimisticToggle: maxListUsers 境界", () => {
 });
 
 describe("文言", () => {
-  const c: ChipView = { key: "like", emoji: "👍", label: "いいね", color: "blue", reacted: true, count: 12, users: { names: ["山田", "佐藤"], more: 3 }, confetti: false };
+  const c: ChipView = { key: "like", emoji: "👍", label: "いいね", color: "blue", theme: "emoji", reacted: true, count: 12, users: { names: ["山田", "佐藤"], more: 3 }, confetti: false };
   it("chipAriaLabel", () => {
     expect(chipAriaLabel(c)).toBe("👍 いいね、12件、付けています");
     expect(chipAriaLabel({ ...c, count: null, reacted: false })).toBe("👍 いいね、付けていません");
+    expect(chipAriaLabel({ ...c, theme: "heart" })).toBe("いいね、12件、付けています");
+  });
+  it("chipName は emoji テーマだけ絵文字を前に付ける", () => {
+    expect(chipName(c)).toBe("👍 いいね");
+    expect(chipName({ ...c, theme: "thanks" })).toBe("いいね");
   });
   it("chipTitle", () => {
     expect(chipTitle(c)).toBe("いいね: 山田, 佐藤 ほか3人");

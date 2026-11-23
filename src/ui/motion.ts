@@ -4,10 +4,10 @@
 // dom.ts と循環 import にならないよう、このファイルは dom.ts を import しない。
 
 import type { Effects } from "../lib/effects";
+import type { ReactionTheme } from "../lib/reactionConfig";
 import {
   CONFETTI_PALETTE,
   ENTER_RELEASE_MS,
-  burstScale,
   confettiParticles,
   finishTimeoutMs,
   keyPressPhase,
@@ -16,9 +16,9 @@ import {
   pressUpFrames,
   pressUpTiming,
   reduceAnimation,
-  rippleGeometry,
-  staggerDelay,
-  PRESS_P2,
+  BURST_MS,
+  shouldBurst,
+  slotDirection,
   type Frame,
   type Timing,
 } from "../lib/motionPlan";
@@ -96,73 +96,78 @@ export function flip(container: Element, mutate: () => void): void {
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-function checkSvg(doc: Document): SVGSVGElement {
-  const svg = doc.createElementNS(SVG_NS, "svg");
-  svg.setAttribute("viewBox", "0 0 16 16");
-  svg.setAttribute("width", "16");
-  svg.setAttribute("height", "16");
-  const path = doc.createElementNS(SVG_NS, "path");
-  path.setAttribute("d", "M3 8.6l3.2 3.1L13 4.9");
-  path.setAttribute("fill", "none");
-  path.setAttribute("stroke", "currentColor");
-  path.setAttribute("stroke-width", "2.4");
-  path.setAttribute("stroke-linecap", "round");
-  path.setAttribute("stroke-linejoin", "round");
-  path.setAttribute("pathLength", "1");
-  svg.appendChild(path);
-  return svg;
+function svgEl(doc: Document, tag: string, attrs: Record<string, string>): SVGElement {
+  const n = doc.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  return n;
 }
 
-export type IconKind = "check" | "spin";
+// mockup と同じアイコン。heart / helpful は線画（選択済みで塗り）、confirm は円とチェック。
+const ICON_PATHS = {
+  heart: "M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z",
+  helpful: "M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3",
+} as const;
 
-// ボタン内の .krx-ic span の中身を差し替える。ラベル（.krx-lbl）には触らない。
-export function setIcon(btn: HTMLElement, kind: IconKind | null): void {
-  const doc = btn.ownerDocument;
-  const ic = btn.querySelector<HTMLElement>(".krx-ic");
-  if (!ic) return;
-  ic.setAttribute("aria-hidden", "true");
-  if (kind === null) {
-    ic.dataset.kind = "";
-    btn.classList.remove("krx-has-ic");
-    // 幅が閉じ終わってから中身を空にする（閉じる途中で中身が消えないように）。
-    setTimeout(() => {
-      if (ic.dataset.kind === "") ic.textContent = "";
-    }, 260);
-    return;
-  }
-  if (ic.dataset.kind !== kind) {
-    ic.textContent = "";
-    if (kind === "spin") {
-      const spin = doc.createElement("span");
-      spin.className = "krx-spin";
-      ic.appendChild(spin);
+// テーマごとのアイコン要素を作る（読み上げは aria-label に任せるので aria-hidden）。
+export function createThemeIcon(doc: Document, theme: ReactionTheme, emoji: string): Element {
+  if (theme === "heart" || theme === "helpful" || theme === "confirm") {
+    const svg = svgEl(doc, "svg", { class: "krx-icon", viewBox: "0 0 24 24", "aria-hidden": "true", focusable: "false" });
+    if (theme === "confirm") {
+      svg.appendChild(svgEl(doc, "circle", { class: "krx-icon-circle", cx: "12", cy: "12", r: "9", stroke: "currentColor", "stroke-width": "2", fill: "none" }));
+      svg.appendChild(svgEl(doc, "path", { class: "krx-icon-check", d: "M8.5 12.5l2.5 2.5 5-5", stroke: "currentColor", "stroke-width": "2", fill: "none" }));
     } else {
-      ic.appendChild(checkSvg(doc));
+      svg.appendChild(svgEl(doc, "path", { d: ICON_PATHS[theme] }));
     }
-    ic.dataset.kind = kind;
+    return svg;
   }
-  btn.classList.add("krx-has-ic");
+  const s = doc.createElement("span");
+  s.setAttribute("class", theme === "thanks" ? "krx-bow" : "krx-emoji");
+  s.setAttribute("aria-hidden", "true");
+  s.textContent = emoji;
+  return s;
 }
 
-function iconKind(btn: HTMLElement): IconKind | null {
-  const kind = btn.querySelector<HTMLElement>(".krx-ic")?.dataset.kind;
-  return kind === "check" || kind === "spin" ? kind : null;
+// 選択演出用の粒（パーティクル）。thanks だけ 💖✨ も浮かべる。
+export function createBurstLayer(doc: Document, theme: ReactionTheme): Node[] {
+  const particles = doc.createElement("span");
+  particles.setAttribute("class", "krx-particles");
+  particles.setAttribute("aria-hidden", "true");
+  for (let i = 0; i < 6; i += 1) {
+    const p = doc.createElement("span");
+    p.setAttribute("class", "krx-particle");
+    particles.appendChild(p);
+  }
+  const nodes: Node[] = [particles];
+  if (theme === "thanks") {
+    const sp = doc.createElement("span");
+    sp.setAttribute("class", "krx-sparkles");
+    sp.setAttribute("aria-hidden", "true");
+    sp.textContent = "💖✨";
+    nodes.push(sp);
+  }
+  return nodes;
 }
 
-export interface SendingHandle {
-  stop(ok: boolean): Promise<void>;
-  release(): void;
+// 件数を差し替え、増減に応じてスロット式に転がす。
+// reduced は呼び出し元（Motion.isReduced）の判定を受け取り、createMotion の設定と食い違わないようにする。
+export function rollCount(countEl: HTMLElement, next: string, reduced: boolean): void {
+  const prev = countEl.textContent ?? "";
+  if (prev === next) return;
+  countEl.textContent = next;
+  if (reduced) return;
+  const dir = slotDirection(prev, next);
+  countEl.classList.remove("krx-slide-up", "krx-slide-down");
+  if (dir === null) return;
+  void countEl.offsetWidth; // reflow して animation を再始動する
+  countEl.classList.add(`krx-slide-${dir}`);
 }
 
 export interface Motion {
   attachPress(btn: HTMLButtonElement, onDown?: () => void): () => void;
-  reveal(buttons: HTMLElement[]): void;
-  startSending(btn: HTMLButtonElement, others: HTMLButtonElement[]): SendingHandle;
   success(btn: HTMLElement, row: HTMLElement): Promise<void>;
-  burst(row: HTMLElement, btn: HTMLElement): Promise<void>;
   error(btn: HTMLElement): Promise<void>;
-  nudge(btn: HTMLElement): Promise<void>;
   confetti(btn: HTMLElement): Promise<void>;
+  isReduced(): boolean;
 }
 
 export interface MotionOptions {
@@ -186,27 +191,6 @@ export function createMotion(options: MotionOptions): Motion {
     return s;
   }
 
-  function ripple(btn: HTMLElement, e: PointerEvent | null): void {
-    if (isReduced()) return;
-    const rect = btn.getBoundingClientRect();
-    const geom = rippleGeometry(rect, e ? { x: e.clientX, y: e.clientY } : null);
-    const node = span("krx-ripple");
-    node.style.width = `${geom.size}px`;
-    node.style.height = `${geom.size}px`;
-    node.style.left = `${geom.left}px`;
-    node.style.top = `${geom.top}px`;
-    btn.appendChild(node);
-    const a = play(node, [{ transform: "scale(0)", opacity: 1 }, { transform: "scale(1)", opacity: 0 }], {
-      duration: 560,
-      easing: "cubic-bezier(.2,.7,.3,1)",
-    });
-    if (!a) {
-      node.remove();
-      return;
-    }
-    void settle(a).then(() => node.remove());
-  }
-
   function attachPress(btn: HTMLButtonElement, onDown?: () => void): () => void {
     let isDown = false;
     let downAnim: Animation | null = null;
@@ -227,11 +211,9 @@ export function createMotion(options: MotionOptions): Motion {
           // 無視
         }
       }
-      btn.style.setProperty("--krx-shade", String(PRESS_P2.shade));
       btn.classList.add("krx-is-down");
       feedback.clickDown();
       feedback.haptic(10);
-      ripple(btn, e);
       if (!isReduced()) {
         downAnim = play(btn, pressDownFrames(), pressDownTiming(), true);
       }
@@ -300,94 +282,27 @@ export function createMotion(options: MotionOptions): Motion {
     };
   }
 
-  function reveal(buttons: HTMLElement[]): void {
-    buttons.forEach((b, i) => {
-      play(
-        b,
-        [
-          { opacity: 0, transform: "translateY(6px)" },
-          { opacity: 1, transform: "none" },
-        ],
-        { duration: 240, delay: staggerDelay(i), easing: "cubic-bezier(.2,.9,.3,1)", fill: "backwards" },
-        true
-      );
+  // 連続呼び出しで前の Promise が残らないよう、タイマーと resolve を組で保持する。
+  const burstTimers = new WeakMap<Element, { timer: ReturnType<typeof setTimeout>; resolve: () => void }>();
+
+  // 付けた状態のとき、保存成功後に krx-is-bursting を付けて CSS の演出を始める（外すのは BURST_MS 後）。
+  async function success(btn: HTMLElement, _row: HTMLElement): Promise<void> {
+    if (!shouldBurst(btn.getAttribute("aria-pressed") === "true", isReduced())) return;
+    const prev = burstTimers.get(btn);
+    if (prev !== undefined) {
+      clearTimeout(prev.timer);
+      prev.resolve();
+    }
+    btn.classList.remove("krx-is-bursting");
+    void btn.offsetWidth; // reflow して animation を再始動する
+    btn.classList.add("krx-is-bursting");
+    await new Promise<void>((resolve) => {
+      const timer = setTimeout(() => {
+        btn.classList.remove("krx-is-bursting");
+        resolve();
+      }, BURST_MS);
+      burstTimers.set(btn, { timer, resolve });
     });
-  }
-
-  function startSending(btn: HTMLButtonElement, others: HTMLButtonElement[]): SendingHandle {
-    const row = btn.parentElement;
-    const prevKind = iconKind(btn) === "check" ? "check" : null;
-    for (const o of others) {
-      o.disabled = true;
-      o.classList.add("krx-is-dim");
-    }
-    btn.disabled = true;
-    btn.classList.add("krx-is-busy");
-    btn.setAttribute("aria-busy", "true");
-    row?.setAttribute("aria-busy", "true");
-    setIcon(btn, "spin");
-    return {
-      async stop(ok: boolean): Promise<void> {
-        // 成功時は呼び出し側（success）が ✓ を出すので、スピナーだけを外す。
-        setIcon(btn, ok ? null : prevKind);
-      },
-      release(): void {
-        for (const o of others) {
-          o.disabled = false;
-          o.classList.remove("krx-is-dim");
-        }
-        btn.disabled = false;
-        btn.classList.remove("krx-is-busy");
-        btn.removeAttribute("aria-busy");
-        row?.removeAttribute("aria-busy");
-      },
-    };
-  }
-
-  async function burst(row: HTMLElement, btn: HTMLElement): Promise<void> {
-    const node = span("krx-burst");
-    const pad = 3;
-    node.style.left = `${btn.offsetLeft - pad}px`;
-    node.style.top = `${btn.offsetTop - pad}px`;
-    node.style.width = `${btn.offsetWidth + pad * 2}px`;
-    node.style.height = `${btn.offsetHeight + pad * 2}px`;
-    try {
-      const c = getComputedStyle(btn).getPropertyValue("--krx-c").trim();
-      if (c) node.style.setProperty("--krx-c", c);
-    } catch {
-      // 無視
-    }
-    row.appendChild(node);
-    const { sx, sy } = burstScale(btn.offsetWidth, btn.offsetHeight);
-    const a = play(
-      node,
-      [
-        { transform: "none", opacity: 0.9 },
-        { transform: `scale(${sx},${sy})`, opacity: 0 },
-      ],
-      { duration: 480, easing: "cubic-bezier(.2,.7,.3,1)", fill: "backwards" }
-    );
-    if (!a) {
-      node.remove();
-      return;
-    }
-    await settle(a);
-    node.remove();
-  }
-
-  async function success(btn: HTMLElement, row: HTMLElement): Promise<void> {
-    setIcon(btn, "check");
-    const path = btn.querySelector("path");
-    const drawn = path
-      ? settle(
-          play(path, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
-            duration: 300,
-            easing: "cubic-bezier(.65,0,.35,1)",
-            fill: "both",
-          })
-        )
-      : Promise.resolve();
-    await Promise.all([drawn, burst(row, btn)]);
   }
 
   async function error(btn: HTMLElement): Promise<void> {
@@ -406,23 +321,6 @@ export function createMotion(options: MotionOptions): Motion {
           { transform: "none" },
         ],
         { duration: 380, easing: "ease-out" },
-        true
-      )
-    );
-  }
-
-  async function nudge(btn: HTMLElement): Promise<void> {
-    await settle(
-      play(
-        btn,
-        [
-          { transform: "none" },
-          { transform: "translateX(-3px) rotate(-1deg)" },
-          { transform: "translateX(3px) rotate(1deg)" },
-          { transform: "translateX(-1px)" },
-          { transform: "none" },
-        ],
-        { duration: 320, easing: "ease-in-out" },
         true
       )
     );
@@ -466,5 +364,5 @@ export function createMotion(options: MotionOptions): Motion {
     }
   }
 
-  return { attachPress, reveal, startSending, success, burst, error, nudge, confetti };
+  return { attachPress, success, error, confetti, isReduced };
 }
