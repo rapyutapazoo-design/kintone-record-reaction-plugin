@@ -1,0 +1,364 @@
+:root {
+  --krx-green: #2e7d32;
+  --krx-green-light: #33843a;
+  --krx-red: #c62828;
+  --krx-red-light: #d32f2f;
+  --krx-blue: #1565c0;
+  --krx-blue-light: #1976d2;
+  --krx-orange: #b45309;
+  --krx-orange-light: #c2410c;
+  --krx-purple: #6a1b9a;
+  --krx-purple-light: #7b1fa2;
+  --krx-gray: #546e7a;
+  --krx-gray-light: #5c7581;
+}
+
+.krx-bar {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.krx-chips {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.krx-chip {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 4px 14px;
+  border: 1.5px solid var(--krx-c);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--krx-c);
+  font: inherit;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent;
+  transition:
+    translate 150ms ease,
+    filter 150ms ease,
+    opacity 200ms ease,
+    background-color 200ms ease,
+    box-shadow 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.krx-color-blue {
+  --krx-c: var(--krx-blue);
+}
+.krx-color-orange {
+  --krx-c: var(--krx-orange);
+}
+.krx-color-red {
+  --krx-c: var(--krx-red);
+}
+.krx-color-purple {
+  --krx-c: var(--krx-purple);
+}
+.krx-color-green {
+  --krx-c: var(--krx-green);
+}
+.krx-color-gray {
+  --krx-c: var(--krx-gray);
+}
+
+@media (hover: hover) {
+  .krx-chip:hover:not(:disabled) {
+    filter: brightness(1.06);
+    translate: 0 -1px;
+  }
+}
+.krx-chip.krx-is-down,
+.krx-chip.krx-is-down:hover:not(:disabled) {
+  translate: none;
+}
+.krx-chip:focus-visible {
+  outline: 3px solid #333;
+  outline-offset: 2px;
+}
+.krx-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.krx-chip[aria-busy="true"]:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+
+/* 付けている状態: 淡い背景、太いリング、✓。色だけに頼らない。 */
+.krx-chip[aria-pressed="true"],
+.krx-chip-active {
+  background: #e8f0fe;
+  background: color-mix(in srgb, var(--krx-c) 14%, #fff);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--krx-c);
+}
+
+.krx-chip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.06);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 140ms ease;
+}
+.krx-chip.krx-is-down::after {
+  opacity: var(--krx-shade, 0.8);
+  transition-duration: 40ms;
+}
+
+.krx-emoji {
+  position: relative;
+  z-index: 1;
+  margin-right: 4px;
+}
+.krx-count {
+  position: relative;
+  z-index: 1;
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.krx-count:empty {
+  display: none;
+}
+
+.krx-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.krx-ic {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  width: 0;
+  margin-right: 0;
+  overflow: hidden;
+  transition:
+    width 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    margin 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.krx-has-ic .krx-ic {
+  width: 16px;
+  margin-right: 6px;
+}
+.krx-ic svg {
+  display: block;
+  flex: none;
+}
+.krx-ic path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.krx-spin {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: currentColor;
+  animation: krx-spin 700ms linear infinite;
+}
+@keyframes krx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 成功時のリング拡散 */
+.krx-burst {
+  position: absolute;
+  border: 3px solid var(--krx-c, currentColor);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+/* 読み込み中（スケルトン） */
+.krx-bar.krx-is-loading .krx-chip {
+  background: #e7ecee;
+  border-color: transparent;
+  color: transparent;
+  box-shadow: none;
+  opacity: 1;
+  cursor: progress;
+}
+.krx-bar.krx-is-loading .krx-chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(100deg, transparent 25%, rgba(255, 255, 255, 0.75) 50%, transparent 75%);
+  transform: translateX(-100%);
+  animation: krx-shimmer 1100ms ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes krx-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.krx-confetti {
+  position: fixed;
+  pointer-events: none;
+  z-index: 10002;
+  border-radius: 1px;
+}
+
+.krx-warning {
+  color: #c0392b;
+  font-size: 13px;
+  padding: 6px 0;
+}
+
+.krx-who {
+  min-height: 28px;
+  padding: 2px 10px;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: #fff;
+  color: #333;
+  font-size: 12px;
+  cursor: pointer;
+}
+.krx-who:focus-visible {
+  outline: 3px solid #333;
+  outline-offset: 2px;
+}
+.krx-who-panel {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.krx-who-panel[hidden] {
+  display: none;
+}
+.krx-who-panel p {
+  margin: 0;
+}
+
+.krx-msg {
+  flex-basis: 100%;
+  font-size: 12px;
+  padding: 4px 0;
+}
+.krx-msg[hidden] {
+  display: none;
+}
+.krx-msg-info {
+  color: #455a64;
+}
+.krx-msg-warning {
+  color: #c0392b;
+}
+
+.krx-toast-stack {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  pointer-events: none;
+  z-index: 10001;
+}
+
+.krx-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #2c3e50;
+  color: #fff;
+  padding: 8px 18px 8px 8px;
+  border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  font-size: 13px;
+}
+
+.krx-toast-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.krx-toast-success {
+  background: #2c3e50;
+}
+
+.krx-toast-error {
+  background: #c0392b;
+}
+
+@media (max-width: 480px) {
+  .krx-chip {
+    min-height: 44px;
+    padding: 6px 16px;
+  }
+  .krx-who {
+    min-height: 44px;
+  }
+}
+
+/* 動きを減らす設定: 位置・大きさの動きを止め、色・不透明度だけを短く切り替える。 */
+@media (prefers-reduced-motion: reduce) {
+  .krx-chip:hover:not(:disabled) {
+    translate: none;
+  }
+  .krx-chip {
+    transition:
+      opacity 100ms ease,
+      background-color 100ms ease,
+      box-shadow 100ms ease,
+      filter 100ms ease;
+  }
+  .krx-ic {
+    transition: width 0ms, margin 0ms;
+  }
+  .krx-bar.krx-is-loading .krx-chip::before {
+    animation: none;
+    opacity: 0;
+  }
+  .krx-spin {
+    animation: none;
+  }
+}

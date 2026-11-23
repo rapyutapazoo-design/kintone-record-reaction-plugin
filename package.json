@@ -1,0 +1,24 @@
+{
+  "name": "kintone-record-reaction",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@kintone/plugin-packer": "^8.0.0",
+    "esbuild": "^0.21.5",
+    "node-rsa": "^1.1.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "check:plugin": "npm run build && find plugin -name '*.js' -exec node --check {} +",
+    "package:plugin": "npm run build && node scripts/package-plugin.mjs",
+    "verify": "npm run test && npm run typecheck && npm run build && npm run check:plugin && npm run package:plugin"
+  }
+}

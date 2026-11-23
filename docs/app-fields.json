@@ -1,0 +1,59 @@
+{
+  "properties": {
+    "reactions": {
+      "type": "SUBTABLE",
+      "code": "reactions",
+      "fields": {
+        "rx_user_code": {
+          "type": "SINGLE_LINE_TEXT",
+          "code": "rx_user_code",
+          "label": "ユーザーコード"
+        },
+        "rx_user_name": {
+          "type": "SINGLE_LINE_TEXT",
+          "code": "rx_user_name",
+          "label": "ユーザー名"
+        },
+        "rx_key": {
+          "type": "SINGLE_LINE_TEXT",
+          "code": "rx_key",
+          "label": "リアクションキー"
+        },
+        "rx_label": {
+          "type": "SINGLE_LINE_TEXT",
+          "code": "rx_label",
+          "label": "表示ラベル"
+        },
+        "rx_at": {
+          "type": "DATETIME",
+          "code": "rx_at",
+          "label": "日時"
+        }
+      }
+    },
+    "cnt_like": {
+      "type": "NUMBER",
+      "code": "cnt_like",
+      "label": "いいね数",
+      "defaultValue": "0"
+    },
+    "cnt_favorite": {
+      "type": "NUMBER",
+      "code": "cnt_favorite",
+      "label": "お気に入り数",
+      "defaultValue": "0"
+    },
+    "cnt_want_to_go": {
+      "type": "NUMBER",
+      "code": "cnt_want_to_go",
+      "label": "行きたい数",
+      "defaultValue": "0"
+    },
+    "cnt_interested": {
+      "type": "NUMBER",
+      "code": "cnt_interested",
+      "label": "気になる数",
+      "defaultValue": "0"
+    }
+  }
+}

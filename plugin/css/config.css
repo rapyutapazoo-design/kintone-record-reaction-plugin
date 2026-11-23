@@ -1,0 +1,166 @@
+.krx-config {
+  font-size: 13px;
+  max-width: 980px;
+}
+
+.krx-config h1 {
+  font-size: 16px;
+}
+
+.krx-config-field {
+  margin-bottom: 20px;
+}
+
+.krx-config-field label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.krx-config-field input[type="text"],
+.krx-config-field input[type="password"] {
+  width: 100%;
+  max-width: 420px;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.krx-config-hint {
+  color: #666;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.krx-config select {
+  width: 100%;
+  max-width: 420px;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.krx-config-warning {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  padding: 10px 12px;
+  border-radius: 4px;
+  color: #8a6d00;
+  margin-bottom: 20px;
+}
+
+.krx-btn-save {
+  background: #3498db;
+  color: #fff;
+  border: 1px solid #3498db;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.krx-btn-cancel {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+#plugin-config-errormsg {
+  color: #c0392b;
+  margin-bottom: 12px;
+  min-height: 1em;
+}
+
+/* ---- リアクション設定 ---- */
+.krx-config-section {
+  margin-bottom: 24px;
+}
+
+.krx-config-section h2 {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+
+.krx-config-notice {
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  padding: 8px 10px;
+  border-radius: 4px;
+  color: #0d47a1;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.krx-mapping-grid {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 320px);
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.krx-rx-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.krx-rx-table th,
+.krx-rx-table td {
+  border-bottom: 1px solid #e5e5e5;
+  padding: 6px 4px;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 12px;
+}
+
+.krx-rx-table input[type="text"],
+.krx-rx-table input[type="number"] {
+  box-sizing: border-box;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.krx-rx-table select {
+  max-width: 150px;
+}
+
+.krx-rx-table .krx-in-key {
+  width: 110px;
+}
+.krx-rx-table .krx-in-emoji {
+  width: 56px;
+}
+.krx-rx-table .krx-in-label {
+  width: 120px;
+}
+
+.krx-rx-table input[readonly] {
+  background: #f3f3f3;
+  color: #666;
+}
+
+.krx-rx-table tr.krx-has-error td {
+  background: #fdecea;
+}
+
+.krx-config-section.krx-has-error {
+  border: 1px solid #e57373;
+  background: #fdecea;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.krx-rx-actions button {
+  margin-right: 2px;
+}
+
+#plugin-config-errormsg {
+  color: #c0392b;
+  margin: 12px 0;
+  white-space: pre-line;
+}

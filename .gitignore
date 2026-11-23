@@ -1,0 +1,9 @@
+node_modules/
+dist/
+keys/
+*.ppk
+.env
+.env.*
+coverage/
+.DS_Store
+plugin/js/

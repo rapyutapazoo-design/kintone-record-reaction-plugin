@@ -1,0 +1,28 @@
+{
+  "manifest_version": 1,
+  "version": 1,
+  "type": "APP",
+  "name": {
+    "ja": "レコードリアクション",
+    "en": "Record Reactions"
+  },
+  "description": {
+    "ja": "レコードに いいね・お気に入り などのリアクションを付けられるプラグインです。誰がいつ付けたかはレコード内のテーブルに記録します。",
+    "en": "Lets users add reactions such as Like and Favorite to a record. Who reacted and when is recorded in a table inside the record."
+  },
+  "icon": "image/icon.png",
+  "desktop": {
+    "js": ["js/desktop.js"],
+    "css": ["css/desktop.css"]
+  },
+  "mobile": {
+    "js": ["js/desktop.js"],
+    "css": ["css/desktop.css"]
+  },
+  "config": {
+    "html": "html/config.html",
+    "js": ["js/config.js"],
+    "css": ["css/config.css"],
+    "required_params": ["recordApiUrl"]
+  }
+}
